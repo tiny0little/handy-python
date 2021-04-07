@@ -1,5 +1,8 @@
 #!/usr/local/bin/python3
 
+# valudate if entered year is leap
+
+
 leap_year=0
 year=int(input("Which year to check? "))
 if year % 4 == 0:
