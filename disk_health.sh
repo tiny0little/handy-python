@@ -17,8 +17,13 @@ ECHO_RED='\e[91m'
 ECHO_NOFORMAT='\e[0m'
 
 rm -f $TEMP_FILE
+echo $SPACER
+echo SSD SSD SSD SSD SSD SSD SSD SSD SSD SSD
+echo $SPACER
 
-$SMARTCTL /dev/nvme1n1 | egrep "Model|Temperature|Written|Hour|Capacity" | egrep -v "Warn|Criti" > $TEMP_FILE
+
+
+$SMARTCTL /dev/disk/by-uuid/fd99d5cd-705d-410b-8555-6c0930c1df67 | egrep "Model|Temperature|Written|Hour|Capacity" | egrep -v "Warn|Criti" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 cat $TEMP_FILE | grep Tempe | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "    : " $2}'
 echo -en "\e[0mCapacity       : $ECHO_GREEN$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1 && echo -en $ECHO_NOFORMAT
@@ -29,7 +34,7 @@ echo -ne "\e[0mData Written   : $ECHO_RED$ECHO_BOLD" && cat $TEMP_FILE | grep Wr
 echo $SPACER
 
 
-$SMARTCTL /dev/nvme0n1 | egrep "Model|Temperature|Written|Hour|Capacity" | egrep -v "Warn|Criti|Sensor|Size|Unallocated" > $TEMP_FILE
+$SMARTCTL /dev/disk/by-uuid/e6167454-2a83-4df4-b3e8-21d78bd4231f | egrep "Model|Temperature|Written|Hour|Capacity" | egrep -v "Warn|Criti|Sensor|Size|Unallocated" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 cat $TEMP_FILE | grep Tempe | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "    : " $2}'
 echo -en "\e[0mCapacity       : $ECHO_GREEN$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1 && echo -en "\e[0m"
@@ -39,8 +44,7 @@ echo -en "\e[0mData Written   : $ECHO_RED$ECHO_BOLD" && cat $TEMP_FILE | grep Wr
 
 echo $SPACER
 
-
-$SMARTCTL /dev/sdb | egrep "Model|Temperature|Host_Writes|Hour|Capacity" > $TEMP_FILE
+$SMARTCTL /dev/disk/by-uuid/47c27470-ead0-4810-b5be-0318e0123f38 | egrep "Model|Temperature|Host_Writes|Hour|Capacity" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 echo -en "\e[0mCapacity       : $ECHO_GREEN$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1 && echo -en "\e[0m"
 echo -en "\e[0mTemperature    : " && cat $TEMP_FILE | grep Temp | awk '{print $10 " Celsius"}' && echo -en "\e[0m"
@@ -49,9 +53,13 @@ echo -en "\e[0mData Written   : $ECHO_RED$ECHO_BOLD" && cat $TEMP_FILE | grep Wr
 
 
 echo $SPACER
+echo HDD HDD HDD HDD HDD HDD HDD HDD HDD HDD
+echo $SPACER
 
 
-$SMARTCTL /dev/sda | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly|194" > $TEMP_FILE
+
+
+$SMARTCTL /dev/disk/by-uuid/badfa509-cf21-4f5f-9eb3-bdd4043e1316 | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly|194" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 echo -en "\e[0mCapacity       : \e[92m$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1
 echo -en "\e[0mTemperature    : " && cat $TEMP_FILE | grep Temp | awk '{print $10 " Celsius"}'
@@ -61,11 +69,23 @@ echo -en "\e[0mPower On Hours : " && cat $TEMP_FILE | grep Hour | awk '{print "\
 echo $SPACER
 
 
-$SMARTCTL /dev/sdc | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly" > $TEMP_FILE
+$SMARTCTL /dev/disk/by-uuid/cc77b748-8011-404b-8120-ee780bb88c1f | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly|Loaded" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 echo -en "\e[0mCapacity       : \e[92m$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1
 echo -en "\e[0mTemperature    : " && cat $TEMP_FILE | grep Temp | awk '{print $10 " Celsius"}'
 echo -en "\e[0mPower On Hours : " && cat $TEMP_FILE | grep Hour | awk '{print "\033[1;31m" $10 "\033[0m"}'
+
+
+
+echo $SPACER
+
+
+$SMARTCTL /dev/sdd | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly|Loaded" > $TEMP_FILE
+cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
+echo -en "\e[0mCapacity       : \e[92m$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1
+echo -en "\e[0mTemperature    : " && cat $TEMP_FILE | grep Temp | awk '{print $10 " Celsius"}'
+echo -en "\e[0mPower On Hours : " && cat $TEMP_FILE | grep Hour | awk '{print "\033[1;31m" $10 "\033[0m"}'
+
 
 
 
