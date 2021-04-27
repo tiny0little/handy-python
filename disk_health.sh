@@ -16,6 +16,7 @@ ECHO_GREEN='\e[92m'
 ECHO_RED='\e[91m'
 ECHO_NOFORMAT='\e[0m'
 
+$SMARTCTL > /dev/null 2> /dev/null
 rm -f $TEMP_FILE
 echo $SPACER
 echo SSD SSD SSD SSD SSD SSD SSD SSD SSD SSD
@@ -52,6 +53,7 @@ echo -en "\e[0mPower On Hours : " && cat $TEMP_FILE | grep Hour | awk '{print "\
 echo -en "\e[0mData Written   : $ECHO_RED$ECHO_BOLD" && cat $TEMP_FILE | grep Writ | awk '{printf "%.2f TB\n", $10/1024}' && echo -en "\e[0m"
 
 
+echo
 echo $SPACER
 echo HDD HDD HDD HDD HDD HDD HDD HDD HDD HDD
 echo $SPACER
@@ -79,7 +81,7 @@ echo -en "\e[0mPower On Hours : " && cat $TEMP_FILE | grep Hour | awk '{print "\
 
 echo $SPACER
 
-
+echo "*** USB DRIVE"
 $SMARTCTL /dev/sdd | egrep "Model|Temperature|Hour|Capacity" | egrep -v "Fly|Loaded" > $TEMP_FILE
 cat $TEMP_FILE | grep Model | awk -F':' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $1 "   : " $2}'
 echo -en "\e[0mCapacity       : \e[92m$ECHO_BOLD" && cat $TEMP_FILE | grep Capacity | cut -d'[' -f2 | cut -d']' -f1
