@@ -2,7 +2,7 @@
 
 import subprocess
 from tabulate import tabulate
-
+import argparse
 
 
 class colors:
@@ -16,16 +16,38 @@ class colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
 TEMP_FILE1="/tmp/disk-health1.tmp"
 TEMP_FILE2="/tmp/disk-health2.tmp"
+table = []
+disks = []
+
+
+
+parser = argparse.ArgumentParser(description="disk summary")
+parser.add_argument("--disk", help="disk device name, can be part of it")
+args = parser.parse_args()
+
+
 
 subprocess.getoutput("sudo ls")
 
 subprocess.getoutput(f"df -m > {TEMP_FILE2}")
-output = subprocess.getoutput("lsblk -r | grep disk | awk '{print $1}'")
-disks = output.split("\n")
-table = []
+if args.disk is None:
+  output = subprocess.getoutput(f"lsblk -r | grep disk").split("\n")
+else:
+  output = subprocess.getoutput(f"lsblk -r | grep disk | grep {args.disk}").split("\n")
+
+disks=[]
+for line in output:
+  disks.append(line.split(" ")[0])
+if disks[0] == '':
+  disks.pop(0)
+if not disks:
+  print("no disks found")
+  exit()
+
+
+
 for disk in disks:
   subprocess.getoutput(f"sudo smartctl -a /dev/{disk} > {TEMP_FILE1}")
 
@@ -57,20 +79,31 @@ for disk in disks:
 
   lines = subprocess.getoutput(f"cat {TEMP_FILE2} | egrep {disk} | egrep -v efi")
   tmp = lines.split(" ")
-  tmp = tmp[len(tmp)-2].strip()
-  used = int(tmp[0:-1])
-  tmp=f"{used}% ["
-  scale=2.5
-  for i in range(int(int(used)/scale)):
-    tmp+="#"
-  for i in range(int(100/scale-int(used)/scale)):
-    tmp+="."
-  tmp+="]"
-  if used > 60:
-    color = colors.WARNING
+  # if 1st element is empty string -> remove it
+  if tmp[0] =='':
+    tmp.pop(0)
+  # if list is not empty
+  if tmp:
+    tmp = tmp[len(tmp)-2].strip()
+    used = int(tmp[0:-1])
+    tmp=f"{used}% ["
+    scale=2.5
+    for i in range(int(int(used)/scale)):
+      tmp+="#"
+    for i in range(int(100/scale-int(used)/scale)):
+      tmp+="."
+    tmp+="]"
+    if used > 70:
+      color = colors.FAIL
+    elif used > 55:
+      color = colors.WARNING
+    else:
+      color = colors.OKGREEN
+    table.append(["used space",f"{color}{colors.BOLD}{tmp}{colors.ENDC}"])
   else:
-    color = colors.OKGREEN
-  table.append(["used",f"{color}{tmp}{colors.ENDC}"])
+    table.append(["used space",f"{colors.OKGREEN}{colors.BOLD}not mounted{colors.ENDC}"])
+
+
 
 
   lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Hour | egrep -v 'Fly|Load'")
