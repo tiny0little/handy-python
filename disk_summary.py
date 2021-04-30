@@ -5,18 +5,15 @@ from tabulate import tabulate
 import argparse
 from tqdm import tqdm
 
-
-class colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
+colorOKBLUE = '\033[94m'
+colorOKCYAN = '\033[96m'
+colorOKGREEN = '\033[92m'
+colorWARNING = '\033[93m'
+colorFAIL = '\033[91m'
+colorENDC = '\033[0m'
+colorBOLD = '\033[1m'
+colorWHITEonBLUE = '\33[44m'
+colorWHITEonRED = '\33[41m'
 
 TEMP_FILE1 = "/tmp/disk-health1.tmp"
 TEMP_FILE2 = "/tmp/disk-health2.tmp"
@@ -63,15 +60,16 @@ if not disks:
     print("no disks found")
     exit()
 
-for disk in tqdm(disks, desc='processing', bar_format='{desc}:{percentage:3.0f}%|{bar:67}|[{elapsed}<{remaining}]'):
+for disk in tqdm(disks, leave=False, desc='processing',
+                 bar_format='{desc}:{percentage:3.0f}%|{bar:67}|[{elapsed}<{remaining}]'):
     subprocess.getoutput(f"sudo smartctl -a /dev/{disk} > {TEMP_FILE1}")
 
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Rotation").split("\n")
-    type0 = "SSD"
+    type0 = f"{colorWHITEonBLUE}SSD{colorENDC}"
     if "rpm" in lines[0]:
-        type0 = "HDD"
+        type0 = f"{colorWHITEonRED}HDD{colorENDC}"
 
-    if (args.device_type != type0.lower()) and (args.device_type != 'all'):
+    if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
         continue
 
     disk_type.append(type0)
@@ -100,9 +98,9 @@ for disk in tqdm(disks, desc='processing', bar_format='{desc}:{percentage:3.0f}%
     #
     #
     #
-    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Capac | egrep -v 'Unallocated|NVM'")
+    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Capacity | egrep -v 'Unallocated|NVM'")
     lines = lines[lines.rfind("[") + 1:-1].strip()
-    disk_capacity.append(f"{colors.BOLD}{colors.OKGREEN}{lines}{colors.ENDC}")
+    disk_capacity.append(f"{colorBOLD}{colorOKGREEN}{lines}{colorENDC}")
 
     #
     #
@@ -126,14 +124,14 @@ for disk in tqdm(disks, desc='processing', bar_format='{desc}:{percentage:3.0f}%
             tmp += "."
         tmp += "]"
         if used > 70:
-            color = colors.FAIL
+            color0 = colorFAIL
         elif used > 55:
-            color = colors.WARNING
+            color0 = colorWARNING
         else:
-            color = colors.OKGREEN
-        disk_space.append(f"{color}{colors.BOLD}{tmp}{colors.ENDC}")
+            color0 = colorOKGREEN
+        disk_space.append(f"{color0}{colorBOLD}{tmp}{colorENDC}")
     else:
-        disk_space.append(f"{colors.OKGREEN}{colors.BOLD}not mounted{colors.ENDC}")
+        disk_space.append(f"{colorOKGREEN}{colorBOLD}not mounted{colorENDC}")
     #
     #
     #
@@ -144,50 +142,54 @@ for disk in tqdm(disks, desc='processing', bar_format='{desc}:{percentage:3.0f}%
         tmp = lines.split("(")
         lines = tmp[0]
     lines = lines[lines.strip().rfind(" "):].strip()
-    disk_hours.append(f"{colors.BOLD}{colors.WARNING}{lines}{colors.ENDC}")
+    disk_hours.append(f"{colorBOLD}{colorWARNING}{lines}{colorENDC}")
 
     #
     #
     #
     #
     #
-    if type0 == "SSD":
+    if "SSD" in type0:
         lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Writ | egrep -v 'Comma|NAND'")
         if "[" in lines:
             lines = lines[lines.rfind("[") + 1:-1]
-            disk_writes.append(f"{colors.BOLD}{colors.FAIL}{lines}{colors.ENDC}")
+            disk_writes.append(f"{colorBOLD}{colorFAIL}{lines}{colorENDC}")
         else:
             lines = int(lines[lines.rfind(" ") + 1:]) / 931
-            disk_writes.append(f"{colors.BOLD}{colors.FAIL}{lines:.2f} TB{colors.ENDC}")
+            disk_writes.append(f"{colorBOLD}{colorFAIL}{lines:.2f} TB{colorENDC}")
     else:
         disk_writes.append("-")
 
+#
+#
+#
+final_table.append(["--------------", "---------------------------------------------",
+                    "--------------", "---------------------------------------------"])
 i = 0
 for disk in disks:
     if i < len(disk_device):
-      if i +1 < len(disk_device):
-        final_table.append(["disk device",disk_device[i],"disk device",disk_device[i+1]])
-        final_table.append(["type",disk_type[i],"type",disk_type[i+1]])
-        final_table.append(["mounts",disk_mounts[i],"mounts",disk_mounts[i+1]])
-        final_table.append(["model",disk_model[i],"model",disk_model[i+1]])
-        final_table.append(["capacity",disk_capacity[i],"capacity",disk_capacity[i+1]])
-        final_table.append(["used space",disk_space[i],"used space",disk_space[i+1]])
-        final_table.append(["power on hours",disk_hours[i],"power on hours",disk_hours[i+1]])
-        final_table.append(["data written",disk_writes[i],"data written",disk_writes[i+1]])
-      else:
-        final_table.append(["disk device", disk_device[i]])
-        final_table.append(["type",disk_type[i]])
-        final_table.append(["mounts",disk_mounts[i]])
-        final_table.append(["model",disk_model[i]])
-        final_table.append(["capacity",disk_capacity[i]])
-        final_table.append(["used space",disk_space[i]])
-        final_table.append(["power on hours",disk_hours[i]])
-        final_table.append(["data written",disk_writes[i]])
+        if i + 1 < len(disk_device):
+            final_table.append(["disk device", disk_device[i], "disk device", disk_device[i + 1]])
+            final_table.append(["type", disk_type[i], "type", disk_type[i + 1]])
+            final_table.append(["mounts", disk_mounts[i], "mounts", disk_mounts[i + 1]])
+            final_table.append(["model", disk_model[i], "model", disk_model[i + 1]])
+            final_table.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
+            final_table.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
+            final_table.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
+            final_table.append(["data written", disk_writes[i], "data written", disk_writes[i + 1]])
+        else:
+            final_table.append(["disk device", disk_device[i]])
+            final_table.append(["type", disk_type[i]])
+            final_table.append(["mounts", disk_mounts[i]])
+            final_table.append(["model", disk_model[i]])
+            final_table.append(["capacity", disk_capacity[i]])
+            final_table.append(["used space", disk_space[i]])
+            final_table.append(["power on hours", disk_hours[i]])
+            final_table.append(["data written", disk_writes[i]])
 
-      final_table.append(["--------------","---------------------------------------------",
-                          "--------------","---------------------------------------------"])
-      i+=2
-
+        final_table.append(["--------------", "---------------------------------------------",
+                            "--------------", "---------------------------------------------"])
+        i += 2
 
 #
 #
