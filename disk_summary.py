@@ -26,7 +26,7 @@ disk_mounts = []
 disk_space = []
 disk_hours = []
 disk_writes = []
-
+disk_temp = []
 #
 #
 #
@@ -105,6 +105,27 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     #
+    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Tempera | egrep -v 'Warning|Critical|Airflow'")
+    if lines.rfind("(",-20) > 0:
+      lines = lines[:lines.rfind("(",-20)].strip()
+    if lines.rfind("Celsius",-20) > 0:
+      lines = lines[:lines.rfind("Celsius",-20)].strip()
+    tmp=lines.split(" ")[-1].strip()
+    if int(tmp) > 60:
+      color=colorRED
+    elif int(tmp) > 50:
+      color0 = colorYELLOW
+    else:
+      color0 = colorGREEN
+    tmp=f"{color0}{colorBOLD}{tmp}C{colorENDC}"
+    disk_temp.append(tmp)
+
+
+    #
+    #
+    #
+    #
+    #
     lines = subprocess.getoutput(f"cat {TEMP_FILE2} | egrep {disk} | egrep -v efi")
     tmp = lines.split(" ")
     # if 1st element is empty string -> remove it
@@ -171,6 +192,7 @@ for disk in disks:
             final_table.append(["type", disk_type[i], "type", disk_type[i + 1]])
             final_table.append(["mounts", disk_mounts[i], "mounts", disk_mounts[i + 1]])
             final_table.append(["model", disk_model[i], "model", disk_model[i + 1]])
+            final_table.append(["temperature", disk_temp[i], "temperature", disk_temp[i + 1]])
             final_table.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
             final_table.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
             final_table.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
@@ -180,6 +202,7 @@ for disk in disks:
             final_table.append(["type", disk_type[i]])
             final_table.append(["mounts", disk_mounts[i]])
             final_table.append(["model", disk_model[i]])
+            final_table.append(["temperature", disk_temp[i]])
             final_table.append(["capacity", disk_capacity[i]])
             final_table.append(["used space", disk_space[i]])
             final_table.append(["power on hours", disk_hours[i]])
