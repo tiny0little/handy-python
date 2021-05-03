@@ -4,7 +4,7 @@ import subprocess
 import argparse
 import os
 
-parser = argparse.ArgumentParser(description="disk summary")
+parser = argparse.ArgumentParser(description="counting CHIA plots")
 parser.add_argument("-k", type=int, help="plot size (32, 33, ...)")
 args = parser.parse_args()
 
