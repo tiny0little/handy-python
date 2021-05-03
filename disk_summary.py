@@ -5,11 +5,9 @@ from tabulate import tabulate
 import argparse
 from tqdm import tqdm
 
-colorOKBLUE = '\033[94m'
-colorOKCYAN = '\033[96m'
-colorOKGREEN = '\033[92m'
-colorWARNING = '\033[93m'
-colorFAIL = '\033[91m'
+colorGREEN = '\033[92m'
+colorYELLOW = '\033[93m'
+colorRED = '\033[91m'
 colorENDC = '\033[0m'
 colorBOLD = '\033[1m'
 colorWHITEonBLUE = '\33[44m'
@@ -49,7 +47,7 @@ if args.disk is None:
 else:
     # remove path to the device, leave only device name
     tmp = args.disk[args.disk.rfind("/") + 1:].strip()
-    output = subprocess.getoutput(f"lsblk -r | grep disk | grep {tmp}").split("\n")
+    output = subprocess.getoutput(f"lsblk -r | grep disk | cut -d' ' -f1 | grep {tmp}").split("\n")
 
 disks = []
 for line in output:
@@ -100,7 +98,7 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Capacity | egrep -v 'Unallocated|NVM'")
     lines = lines[lines.rfind("[") + 1:-1].strip()
-    disk_capacity.append(f"{colorBOLD}{colorOKGREEN}{lines}{colorENDC}")
+    disk_capacity.append(f"{colorBOLD}{colorGREEN}{lines}{colorENDC}")
 
     #
     #
@@ -124,14 +122,14 @@ for disk in tqdm(disks, leave=False, desc='processing',
             tmp += "."
         tmp += "]"
         if used > 70:
-            color0 = colorFAIL
+            color0 = colorRED
         elif used > 55:
-            color0 = colorWARNING
+            color0 = colorYELLOW
         else:
-            color0 = colorOKGREEN
+            color0 = colorGREEN
         disk_space.append(f"{color0}{colorBOLD}{tmp}{colorENDC}")
     else:
-        disk_space.append(f"{colorOKGREEN}{colorBOLD}not mounted{colorENDC}")
+        disk_space.append(f"{colorGREEN}{colorBOLD}not mounted{colorENDC}")
     #
     #
     #
@@ -142,7 +140,7 @@ for disk in tqdm(disks, leave=False, desc='processing',
         tmp = lines.split("(")
         lines = tmp[0]
     lines = lines[lines.strip().rfind(" "):].strip()
-    disk_hours.append(f"{colorBOLD}{colorWARNING}{lines}{colorENDC}")
+    disk_hours.append(f"{colorBOLD}{colorYELLOW}{lines}{colorENDC}")
 
     #
     #
@@ -153,10 +151,10 @@ for disk in tqdm(disks, leave=False, desc='processing',
         lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Writ | egrep -v 'Comma|NAND'")
         if "[" in lines:
             lines = lines[lines.rfind("[") + 1:-1]
-            disk_writes.append(f"{colorBOLD}{colorFAIL}{lines}{colorENDC}")
+            disk_writes.append(f"{colorBOLD}{colorRED}{lines}{colorENDC}")
         else:
             lines = int(lines[lines.rfind(" ") + 1:]) / 931
-            disk_writes.append(f"{colorBOLD}{colorFAIL}{lines:.2f} TB{colorENDC}")
+            disk_writes.append(f"{colorBOLD}{colorRED}{lines:.2f} TB{colorENDC}")
     else:
         disk_writes.append("-")
 
