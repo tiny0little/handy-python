@@ -26,10 +26,10 @@ size = size / (1024*1024*1024*1024)
 
 
 if args.k is None:
-  print(f"total plots count: {len(plots)}")
-  print(f"total plots size: {size:.2f} TB")
+  print(f"total plots count : {len(plots)}")
+  print(f"total plots size  : {size:.2f} TB")
 else:
-  print(f"plot k{args.k} count: {len(plots)}")
-  print(f"plot k{args.k} size: {size:.2f} TB")
+  print(f"plot k{args.k} count : {len(plots)}")
+  print(f"plot k{args.k} size  : {size:.2f} TB")
 
 

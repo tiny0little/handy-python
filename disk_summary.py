@@ -62,21 +62,40 @@ for disk in tqdm(disks, leave=False, desc='processing',
                  bar_format='{desc}:{percentage:3.0f}%|{bar:67}|[{elapsed}<{remaining}]'):
     subprocess.getoutput(f"sudo smartctl -a /dev/{disk} > {TEMP_FILE1}")
 
+    # let's see if we have anything, if nothing, let's try 1st partition
+    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Model").split("\n")
+    if lines[0] == '':
+      subprocess.getoutput(f"sudo smartctl -a /dev/{disk}1 > {TEMP_FILE1}")
+
+
+
+
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Rotation").split("\n")
     type0 = f"{colorWHITEonBLUE}SSD{colorENDC}"
     if "rpm" in lines[0]:
         type0 = f"{colorWHITEonRED}HDD{colorENDC}"
 
+
+
     if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
         continue
+
+
+
 
     disk_type.append(type0)
     disk_device.append(f"/dev/{disk}")
 
+
+    #
+    #
+    #
+    #
+
     tmp0 = subprocess.getoutput(f"cat {TEMP_FILE2} | egrep {disk}").split("\n")
     mount = ''
     for tmp1 in tmp0:
-        mount = mount + tmp1.split(" ")[-1] + '\n'
+        mount = mount + tmp1[tmp1.rfind("%")+1:].strip()+ '\n'
     mount = mount[:-1]
     disk_mounts.append(f"{mount}")
 
@@ -85,11 +104,13 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     #
-    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Model").split("\n")
+    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep 'Model|Vendor:|Product:'").split("\n")
+    if lines[0] == '':
+        lines.pop(0)
     model = []
     for i in range(len(lines)):
-        model.append(lines[i].split(":")[1].strip())
-    disk_model.append(f"{' '.join(model)}")
+      model.append(lines[i].split(":")[1].strip())
+    disk_model.append(f"{' - '.join(model)}")
 
     #
     #
@@ -105,20 +126,29 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     #
-    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Tempera | egrep -v 'Warning|Critical|Airflow'")
-    if lines.rfind("(",-20) > 0:
-      lines = lines[:lines.rfind("(",-20)].strip()
-    if lines.rfind("Celsius",-20) > 0:
-      lines = lines[:lines.rfind("Celsius",-20)].strip()
-    tmp=lines.split(" ")[-1].strip()
-    if int(tmp) > 60:
-      color=colorRED
-    elif int(tmp) > 50:
-      color0 = colorYELLOW
+    lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Tempera | egrep -v 'Trip|Warning|Critical|Airflow'")
+    if len(lines) > 0:
+      if lines[0] == '':
+        lines.pop(0)
+    if len(lines) > 0:
+      if lines.rfind("(",-20) > 0:
+        lines = lines[:lines.rfind("(",-20)].strip()
+      if lines.rfind("Celsius",-20) > 0:
+        lines = lines[:lines.rfind("Celsius",-20)].strip()
+      if lines.rfind("C",-10) > 0:
+        lines = lines[:lines.rfind("C",-10)].strip()
+      tmp=lines.split(" ")[-1].strip()
+      if int(tmp) > 60:
+        color0=colorRED
+      elif int(tmp) > 50:
+        color0 = colorYELLOW
+      else:
+        color0 = colorGREEN
+      tmp=f"{color0}{colorBOLD}{tmp}C{colorENDC}"
     else:
-      color0 = colorGREEN
-    tmp=f"{color0}{colorBOLD}{tmp}C{colorENDC}"
+      tmp=''
     disk_temp.append(tmp)
+    
 
 
     #
@@ -126,31 +156,29 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     #
+
     lines = subprocess.getoutput(f"cat {TEMP_FILE2} | egrep {disk} | egrep -v efi")
-    tmp = lines.split(" ")
-    # if 1st element is empty string -> remove it
-    if tmp[0] == '':
-        tmp.pop(0)
-    # if list is not empty
-    if tmp:
-        tmp = tmp[len(tmp) - 2].strip()
-        used = int(tmp[0:-1])
-        tmp = f"{used}% ["
-        scale = 2.5
-        for i in range(int(int(used) / scale)):
-            tmp += "#"
-        for i in range(int(100 / scale - int(used) / scale)):
-            tmp += "."
-        tmp += "]"
-        if used > 70:
-            color0 = colorRED
-        elif used > 55:
-            color0 = colorYELLOW
-        else:
-            color0 = colorGREEN
-        disk_space.append(f"{color0}{colorBOLD}{tmp}{colorENDC}")
+    used = 0
+    if lines.rfind("%") > 0:
+      used = int(lines[lines.rfind("%")-3:lines.rfind("%")].strip())
+    if used > 0:
+      tmp = f"{used}% ["
+      scale = 2.5
+      for i in range(int(int(used) / scale)):
+        tmp += "#"
+      for i in range(int(100 / scale - int(used) / scale)):
+        tmp += "."
+      tmp += "]"
+      if used > 70:
+        color0 = colorRED
+      elif used > 55:
+        color0 = colorYELLOW
+      else:
+        color0 = colorGREEN
+      disk_space.append(f"{color0}{colorBOLD}{tmp}{colorENDC}")
     else:
-        disk_space.append(f"{colorGREEN}{colorBOLD}not mounted{colorENDC}")
+      disk_space.append(f"{colorGREEN}{colorBOLD}not mounted{colorENDC}")
+
     #
     #
     #
@@ -170,18 +198,22 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     if "SSD" in type0:
         lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Writ | egrep -v 'Comma|NAND'")
-        if "[" in lines:
-            lines = lines[lines.rfind("[") + 1:-1]
-            disk_writes.append(f"{colorBOLD}{colorRED}{lines}{colorENDC}")
+        if len(lines) > 0:
+          if "[" in lines:
+              lines = lines[lines.rfind("[") + 1:-1]
+              disk_writes.append(f"{colorBOLD}{colorRED}{lines}{colorENDC}")
+          else:
+              lines = int(lines[lines.rfind(" ") + 1:]) / 931
+              disk_writes.append(f"{colorBOLD}{colorRED}{lines:.2f} TB{colorENDC}")
         else:
-            lines = int(lines[lines.rfind(" ") + 1:]) / 931
-            disk_writes.append(f"{colorBOLD}{colorRED}{lines:.2f} TB{colorENDC}")
+          disk_writes.append("-")
     else:
         disk_writes.append("-")
 
 #
 #
 #
+
 final_table.append(["--------------", "---------------------------------------------",
                     "--------------", "---------------------------------------------"])
 i = 0
