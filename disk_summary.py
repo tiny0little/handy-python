@@ -15,8 +15,9 @@ colorWHITEonRED = '\33[41m'
 
 TEMP_FILE1 = "/tmp/disk-health1.tmp"
 TEMP_FILE2 = "/tmp/disk-health2.tmp"
+scale = 2.5
 
-final_table = []
+finalTable = []
 disks = []
 disk_device = []
 disk_type = []
@@ -27,6 +28,11 @@ disk_space = []
 disk_hours = []
 disk_writes = []
 disk_temp = []
+
+totalCapacity = 0
+totalUsedSpace = 0
+totalFreeSpace = 0
+
 #
 #
 #
@@ -118,9 +124,13 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Capacity | egrep -v 'Unallocated|NVM'")
-    lines = lines[lines.rfind("[") + 1:-1].strip()
-    disk_capacity.append(f"{colorBOLD}{colorGREEN}{lines}{colorENDC}")
-
+    capacity = lines[lines.rfind("[") + 1:-1].strip()
+    disk_capacity.append(f"{colorBOLD}{colorGREEN}{capacity}{colorENDC}")
+    capacityInBytes = lines[lines.rfind(":")+1:lines.rfind("byte")-1].replace(',','').strip()
+    if not capacityInBytes.isnumeric():
+      capacityInBytes = lines[lines.rfind(":")+1:lines.rfind("[")-1].replace(',','').strip()
+    if capacityInBytes.isnumeric():
+      totalCapacity += int(capacityInBytes)
     #
     #
     #
@@ -162,8 +172,9 @@ for disk in tqdm(disks, leave=False, desc='processing',
     if lines.rfind("%") > 0:
       used = int(lines[lines.rfind("%")-3:lines.rfind("%")].strip())
     if used > 0:
+      if capacityInBytes.isnumeric():
+        totalUsedSpace += used * int(capacityInBytes) / 100
       tmp = f"{used}% ["
-      scale = 2.5
       for i in range(int(int(used) / scale)):
         tmp += "#"
       for i in range(int(100 / scale - int(used) / scale)):
@@ -214,33 +225,33 @@ for disk in tqdm(disks, leave=False, desc='processing',
 #
 #
 
-final_table.append(["--------------", "---------------------------------------------",
+finalTable.append(["--------------", "---------------------------------------------",
                     "--------------", "---------------------------------------------"])
 i = 0
 for disk in disks:
     if i < len(disk_device):
         if i + 1 < len(disk_device):
-            final_table.append(["disk device", disk_device[i], "disk device", disk_device[i + 1]])
-            final_table.append(["type", disk_type[i], "type", disk_type[i + 1]])
-            final_table.append(["mounts", disk_mounts[i], "mounts", disk_mounts[i + 1]])
-            final_table.append(["model", disk_model[i], "model", disk_model[i + 1]])
-            final_table.append(["temperature", disk_temp[i], "temperature", disk_temp[i + 1]])
-            final_table.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
-            final_table.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
-            final_table.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
-            final_table.append(["data written", disk_writes[i], "data written", disk_writes[i + 1]])
+            finalTable.append(["disk device", disk_device[i], "disk device", disk_device[i + 1]])
+            finalTable.append(["type", disk_type[i], "type", disk_type[i + 1]])
+            finalTable.append(["mounts", disk_mounts[i], "mounts", disk_mounts[i + 1]])
+            finalTable.append(["model", disk_model[i], "model", disk_model[i + 1]])
+            finalTable.append(["temperature", disk_temp[i], "temperature", disk_temp[i + 1]])
+            finalTable.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
+            finalTable.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
+            finalTable.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
+            finalTable.append(["data written", disk_writes[i], "data written", disk_writes[i + 1]])
         else:
-            final_table.append(["disk device", disk_device[i]])
-            final_table.append(["type", disk_type[i]])
-            final_table.append(["mounts", disk_mounts[i]])
-            final_table.append(["model", disk_model[i]])
-            final_table.append(["temperature", disk_temp[i]])
-            final_table.append(["capacity", disk_capacity[i]])
-            final_table.append(["used space", disk_space[i]])
-            final_table.append(["power on hours", disk_hours[i]])
-            final_table.append(["data written", disk_writes[i]])
+            finalTable.append(["disk device", disk_device[i]])
+            finalTable.append(["type", disk_type[i]])
+            finalTable.append(["mounts", disk_mounts[i]])
+            finalTable.append(["model", disk_model[i]])
+            finalTable.append(["temperature", disk_temp[i]])
+            finalTable.append(["capacity", disk_capacity[i]])
+            finalTable.append(["used space", disk_space[i]])
+            finalTable.append(["power on hours", disk_hours[i]])
+            finalTable.append(["data written", disk_writes[i]])
 
-        final_table.append(["--------------", "---------------------------------------------",
+        finalTable.append(["--------------", "---------------------------------------------",
                             "--------------", "---------------------------------------------"])
         i += 2
 
@@ -249,6 +260,38 @@ for disk in disks:
 #
 #
 #
-print(tabulate(final_table, colalign=("right",), tablefmt="orgtbl"))
+totalCapacity  /= (1024*1024*1024*1024)
+totalUsedSpace /= (1024*1024*1024*1024)
+totalFreeSpace = totalCapacity - totalUsedSpace
+used = 100 * totalUsedSpace / totalCapacity
+tmp = f"{used:.0f}% ["
+for i in range(int(int(used) / scale)):
+  tmp += "#"
+for i in range(int(100 / scale - int(used) / scale)):
+  tmp += "."
+tmp += "]"
+if used > 70:
+  color0 = colorRED
+elif used > 55:
+  color0 = colorYELLOW
+else:
+  color0 = colorGREEN
+
+finalTable.append(["--------------", "---------------------------------------------",
+                   "--------------", "---------------------------------------------"])
+finalTable.append(["total capacity", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
+finalTable.append(["total free space",f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
+finalTable.append(["total used space",f"{color0}{colorBOLD}{tmp}{colorENDC}"])
+finalTable.append(["--------------", "---------------------------------------------",
+                   "--------------", "---------------------------------------------"])
+
+#
+#
+#
+#
+#
+
+print(tabulate(finalTable, colalign=("right",), tablefmt="orgtbl"))
+
 subprocess.getoutput(f"rm {TEMP_FILE1}")
 subprocess.getoutput(f"rm {TEMP_FILE2}")
