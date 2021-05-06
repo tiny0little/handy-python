@@ -3,6 +3,9 @@
 import subprocess
 import argparse
 import os
+from dateutil.parser import *
+from dateutil.relativedelta import relativedelta
+
 
 TEMP_FILE = "/tmp/plots_per_day.tmp"
 dates = []
@@ -18,8 +21,7 @@ subprocess.getoutput(f"find /media/ -name plot*plot -exec ls -al {{}} \; 2> /dev
 plots = subprocess.getoutput(f"cat {TEMP_FILE}").split("\n")
 
 for plot in plots:
-  tmp0 = " ".join(plot.split())
-  tmp0 = tmp0.split(" ")
+  tmp0 = " ".join(plot.split()).split(" ")
   mon = tmp0[5]
   day = int(tmp0[6])
   dates.append((mon,day))
@@ -46,9 +48,15 @@ for (mon,day) in dates:
   if args.files is True:
     tmp0 = subprocess.getoutput(f"cat {TEMP_FILE} | egrep '{mon}\s+{day}'").split("\n")
     for tmp1 in tmp0:
-      fileName = " ".join(tmp1.split()).split(" ")[8]
-      print(f"- {fileName}")
+      tmp2 = " ".join(tmp1.split()).split(" ")
+      fileName = tmp2[8]
+      plotFileDataTime = parse(f"{tmp2[5]} {tmp2[6]} {tmp2[7]}")
+      tmp3 = fileName.split("-")
+      plotStartDatTime = parse(f"{tmp3[4]}-{tmp3[5]}-{tmp3[6]} {tmp3[7]}:{tmp3[8]}:00")
+      plotProcTime = relativedelta(plotFileDataTime, plotStartDatTime)
+      plotProcTimeInHours = plotProcTime.days * 24 + plotProcTime.hours
+      print(f"- {fileName} - completed in {plotProcTimeInHours} hours ")
 
 
-subprocess.getoutput(f"rm {TEMP_FILE}")
+#subprocess.getoutput(f"rm {TEMP_FILE}")
 
