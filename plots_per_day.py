@@ -13,11 +13,11 @@ dates = []
 
 
 parser = argparse.ArgumentParser(description="counting how many CHIA plots made per day")
-parser.add_argument("-f", "--files", action='store_true', help="show plot files")
+parser.add_argument("-f", "--files", action='store_true', help="do not show plot files")
 args = parser.parse_args()
 
 
-subprocess.getoutput(f"find /media/ -name plot*plot -exec ls -al {{}} \; 2> /dev/null > {TEMP_FILE}")
+subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' -exec ls -al {{}} \; 2> /dev/null > {TEMP_FILE}")
 plots = subprocess.getoutput(f"cat {TEMP_FILE}").split("\n")
 
 for plot in plots:
@@ -45,7 +45,7 @@ for (mon,day) in dates:
   size = size / (1024 * 1024 * 1024 * 1024)
   print(f"- size of plots: {size:.1f}TB")
 
-  if args.files is True:
+  if args.files is False:
     tmp0 = subprocess.getoutput(f"cat {TEMP_FILE} | egrep '{mon}\s+{day}'").split("\n")
     for tmp1 in tmp0:
       tmp2 = " ".join(tmp1.split()).split(" ")
@@ -58,5 +58,5 @@ for (mon,day) in dates:
       print(f"- {fileName} - completed in {plotProcTimeInHours} hours ")
 
 
-#subprocess.getoutput(f"rm {TEMP_FILE}")
+subprocess.getoutput(f"rm {TEMP_FILE}")
 

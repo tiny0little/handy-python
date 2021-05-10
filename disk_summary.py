@@ -10,6 +10,8 @@ colorYELLOW = '\033[93m'
 colorRED = '\033[91m'
 colorENDC = '\033[0m'
 colorBOLD = '\033[1m'
+colorWHITEonPURPLE = '\33[45m'
+colorWHITEonGREEN = '\33[42m'
 colorWHITEonBLUE = '\33[44m'
 colorWHITEonRED = '\33[41m'
 
@@ -28,6 +30,8 @@ disk_space = []
 disk_hours = []
 disk_writes = []
 disk_temp = []
+disk_errors = []
+
 
 totalCapacity = 0
 totalUsedSpace = 0
@@ -56,10 +60,8 @@ else:
     output = subprocess.getoutput(f"lsblk -r | grep disk | cut -d' ' -f1 | grep {tmp}").split("\n")
 
 disks = []
-for line in output:
-    disks.append(line.split(" ")[0])
-if disks[0] == '':
-    disks.pop(0)
+for line in output : disks.append(line.split(" ")[0])
+if disks[0] == '' : disks.pop(0)
 if not disks:
     print("no disks found")
     exit()
@@ -68,23 +70,20 @@ for disk in tqdm(disks, leave=False, desc='processing',
                  bar_format='{desc}:{percentage:3.0f}%|{bar:67}|[{elapsed}<{remaining}]'):
     subprocess.getoutput(f"sudo smartctl -a /dev/{disk} > {TEMP_FILE1}")
 
-    # let's see if we have anything, if nothing, let's try 1st partition
+    # let's see if we have anything, if nothing, let's try 1st partition -> works for USB flash drives
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Model").split("\n")
-    if lines[0] == '':
-      subprocess.getoutput(f"sudo smartctl -a /dev/{disk}1 > {TEMP_FILE1}")
+    if lines[0] == '' : subprocess.getoutput(f"sudo smartctl -a /dev/{disk}1 > {TEMP_FILE1}")
 
 
 
 
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep Rotation").split("\n")
-    type0 = f"{colorWHITEonBLUE}SSD{colorENDC}"
-    if "rpm" in lines[0]:
-        type0 = f"{colorWHITEonRED}HDD{colorENDC}"
+    type0 = f"{colorWHITEonGREEN}SSD{colorENDC}"
+    if "rpm" in lines[0] : type0 = f"{colorWHITEonPURPLE}HDD{colorENDC}"
 
 
 
-    if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
-        continue
+    if (args.device_type not in type0.lower()) and (args.device_type != 'all') : continue
 
 
 
@@ -100,8 +99,7 @@ for disk in tqdm(disks, leave=False, desc='processing',
 
     tmp0 = subprocess.getoutput(f"cat {TEMP_FILE2} | egrep {disk}").split("\n")
     mount = ''
-    for tmp1 in tmp0:
-        mount = mount + tmp1[tmp1.rfind("%")+1:].strip()+ '\n'
+    for tmp1 in tmp0 : mount = mount + tmp1[tmp1.rfind("%")+1:].strip()+ '\n'
     mount = mount[:-1]
     disk_mounts.append(f"{mount}")
 
@@ -111,11 +109,9 @@ for disk in tqdm(disks, leave=False, desc='processing',
     #
     #
     lines = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep 'Model|Vendor:|Product:'").split("\n")
-    if lines[0] == '':
-        lines.pop(0)
+    if lines[0] == '' : lines.pop(0)
     model = []
-    for i in range(len(lines)):
-      model.append(lines[i].split(":")[1].strip())
+    for i in range(len(lines)) : model.append(lines[i].split(":")[1].strip())
     disk_model.append(f"{' - '.join(model)}")
 
     #
@@ -127,10 +123,8 @@ for disk in tqdm(disks, leave=False, desc='processing',
     capacity = lines[lines.rfind("[") + 1:-1].strip()
     disk_capacity.append(f"{colorBOLD}{colorGREEN}{capacity}{colorENDC}")
     capacityInBytes = lines[lines.rfind(":")+1:lines.rfind("byte")-1].replace(',','').strip()
-    if not capacityInBytes.isnumeric():
-      capacityInBytes = lines[lines.rfind(":")+1:lines.rfind("[")-1].replace(',','').strip()
-    if capacityInBytes.isnumeric():
-      totalCapacity += int(capacityInBytes)
+    if not capacityInBytes.isnumeric() : capacityInBytes = lines[lines.rfind(":")+1:lines.rfind("[")-1].replace(',','').strip()
+    if capacityInBytes.isnumeric() : totalCapacity += int(capacityInBytes)
     #
     #
     #
@@ -217,9 +211,33 @@ for disk in tqdm(disks, leave=False, desc='processing',
               lines = int(lines[lines.rfind(" ") + 1:]) / 931
               disk_writes.append(f"{colorBOLD}{colorRED}{lines:.2f} TB{colorENDC}")
         else:
-          disk_writes.append("-")
+          disk_writes.append("")
     else:
-        disk_writes.append("-")
+        disk_writes.append("")
+
+
+    #
+    #
+    #
+    #
+    #
+
+    errors = ""
+    tmp0 = subprocess.getoutput(f"cat {TEMP_FILE1} | egrep 'Reallocated_Sector|Current_Pending_Sector|Calibration_Retry_Count|Command_Timeout|Spin_Retry_Count|Calibration_Retry_Count|Offline_Uncorrectable|Error' | egrep -v 'Error_Rate'").split("\n")
+    for tmp1 in tmp0:
+      tmp2 = " ".join(tmp1.split()).split(" ")
+      if len(tmp2) > 1:
+        propertyName = tmp2[1].strip()
+        tmp1 = " ".join(tmp1.split())
+        value = tmp1[tmp1.rfind("-")+1:].strip()
+        if not value.isnumeric():
+          value = value.split(" ")[0].strip()
+        if value.isnumeric():
+          if int(value) > 0:
+            errors = errors + f"{propertyName} = {colorRED}{colorBOLD}{value}{colorENDC}\n"
+
+    disk_errors.append(errors)
+
 
 #
 #
@@ -239,7 +257,8 @@ for disk in disks:
             finalTable.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
             finalTable.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
             finalTable.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
-            finalTable.append(["data written", disk_writes[i], "data written", disk_writes[i + 1]])
+            finalTable.append(["data writes", disk_writes[i], "data writes", disk_writes[i + 1]])
+            finalTable.append(["errors", disk_errors[i], "errors", disk_errors[i + 1]])
         else:
             finalTable.append(["disk device", disk_device[i]])
             finalTable.append(["type", disk_type[i]])
@@ -249,7 +268,8 @@ for disk in disks:
             finalTable.append(["capacity", disk_capacity[i]])
             finalTable.append(["used space", disk_space[i]])
             finalTable.append(["power on hours", disk_hours[i]])
-            finalTable.append(["data written", disk_writes[i]])
+            finalTable.append(["data writes", disk_writes[i]])
+            finalTable.append(["errors", disk_errors[i]])
 
         finalTable.append(["--------------", "---------------------------------------------",
                             "--------------", "---------------------------------------------"])
@@ -260,10 +280,12 @@ for disk in disks:
 #
 #
 #
+   
 totalCapacity  /= (1024*1024*1024*1024)
 totalUsedSpace /= (1024*1024*1024*1024)
 totalFreeSpace = totalCapacity - totalUsedSpace
-used = 100 * totalUsedSpace / totalCapacity
+if totalCapacity > 0:
+  used = 100 * totalUsedSpace / totalCapacity
 tmp = f"{used:.0f}% ["
 for i in range(int(int(used) / scale)):
   tmp += "#"
