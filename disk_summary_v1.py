@@ -1,5 +1,9 @@
 #!/usr/bin/python3.8
 
+#
+# development of this code is stopped
+#
+
 import subprocess
 from tabulate import tabulate
 import argparse

@@ -58,6 +58,7 @@ if __name__ != "__main__": exit()
 #
 
 parser = argparse.ArgumentParser(description="disk summary")
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 parser.add_argument("-d", "--disk", help="disk device name, can be part of it")
 parser.add_argument("device_type", choices=['all', 'ssd', 'hdd'], nargs='?', default='all', const='all',
                     help="which type of devices you would like to see? (default: %(default)s)")
@@ -80,6 +81,7 @@ if not disks:
     print("no disks found")
     exit()
 
+if args.verbose: print(f"found following disks: {disks}")
 
 #
 # Gather all disks SMART info and store it into tmp files
@@ -356,6 +358,5 @@ print(tabulate(finalTable, colalign=("right",), tablefmt="orgtbl"))
 # delete all tmp files
 #
 subprocess.getoutput(f"rm {tempFileDF}")
-for disk in disks:
-  subprocess.getoutput(f"rm {tempFiles[disk]}")
+for disk in disks: subprocess.getoutput(f"rm {tempFiles[disk]}")
 
