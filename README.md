@@ -1,2 +1,2 @@
-a collection of python scripts for education
+a collection of handy utilities
 
