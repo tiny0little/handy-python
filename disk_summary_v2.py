@@ -105,7 +105,7 @@ for disk in disks:
 #
 # Waiting for all threads to complete
 #
-with Halo(text='thinking ...',color='white'):
+with Halo(color='white'):
   for disk in disks:
     th[disk].join()
 
@@ -315,33 +315,6 @@ for i in range(0, len(disks), args.col):
 
   rowSeparator()
 
-
-#    if i < len(disk_device):
-#        if i + 1 < len(disk_device):
-#            finalTable.append(["disk device", disk_device[i], "disk device", disk_device[i + 1]])
-#            finalTable.append(["type", disk_type[i], "type", disk_type[i + 1]])
-#            finalTable.append(["mounts", disk_mounts[i], "mounts", disk_mounts[i + 1]])
-#            finalTable.append(["model", disk_model[i], "model", disk_model[i + 1]])
-#            finalTable.append(["temperature", disk_temp[i], "temperature", disk_temp[i + 1]])
-#            finalTable.append(["capacity", disk_capacity[i], "capacity", disk_capacity[i + 1]])
-#            finalTable.append(["used space", disk_space[i], "used space", disk_space[i + 1]])
-#            finalTable.append(["power on hours", disk_hours[i], "power on hours", disk_hours[i + 1]])
-#            finalTable.append(["data writes", disk_writes[i], "data writes", disk_writes[i + 1]])
-#            finalTable.append(["errors", disk_errors[i], "errors", disk_errors[i + 1]])
-#        else:
-#            finalTable.append(["disk device", disk_device[i]])
-#            finalTable.append(["type", disk_type[i]])
-#            finalTable.append(["mounts", disk_mounts[i]])
-#            finalTable.append(["model", disk_model[i]])
-#            finalTable.append(["temperature", disk_temp[i]])
-#            finalTable.append(["capacity", disk_capacity[i]])
-#            finalTable.append(["used space", disk_space[i]])
-#            finalTable.append(["power on hours", disk_hours[i]])
-#            finalTable.append(["data writes", disk_writes[i]])
-#            finalTable.append(["errors", disk_errors[i]])
-
-#        rowSeparator()
-#        i += 2
 
 #
 #
