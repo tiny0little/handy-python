@@ -10,9 +10,9 @@ args = parser.parse_args()
 
 
 if args.k is None:
-  plots = subprocess.getoutput(f"find /home /media/ -name '*plot' 2> /dev/null").split("\n")
+  plots = subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' 2> /dev/null").split("\n")
 else:
-  plots = subprocess.getoutput(f"find /home /media/ -name '*plot' 2> /dev/null | egrep 'k{args.k}-'").split("\n")
+  plots = subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' 2> /dev/null | egrep 'k{args.k}-'").split("\n")
 
 if plots[0] == '':
   plots.pop(0)
