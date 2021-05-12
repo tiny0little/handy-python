@@ -50,7 +50,8 @@ if __name__ != "__main__": exit()
 parser = argparse.ArgumentParser(description="disk summary")
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 parser.add_argument("-d", "--disk", help="disk device name, can be part of it")
-parser.add_argument("-c", "--col", help="number of columns in the output", default=3, type=int, choices=[1, 2, 3], )
+parser.add_argument("-c", "--columns", help="number of columns in the output", default=3, type=int,
+                    choices=[1, 2, 3, 4], )
 parser.add_argument("device_type", choices=['all', 'ssd', 'hdd'], nargs='?', default='all', const='all',
                     help="which type of devices you would like to see? (default: %(default)s)")
 args = parser.parse_args()
@@ -269,25 +270,25 @@ for disk in disks:
 #
 
 def row_separator():
-    row0 = []
-    for x in range(args.col):
-        row0.append("--------------")
-        row0.append("---------------------------------------------")
-    finalTable.append(row0)
+    _row0 = []
+    for _x in range(args.columns):
+        _row0.append("--------------")
+        _row0.append("---------------------------------------------")
+    finalTable.append(_row0)
 
 
 def row_builder(info_text, data, index):
-    row0 = []
-    for x in range(args.col):
-        if x + index < len(data):
-            row0.append(info_text)
-            row0.append(data[x + index])
-    finalTable.append(row0)
+    _row0 = []
+    for _x in range(args.columns):
+        if _x + index < len(data):
+            _row0.append(info_text)
+            _row0.append(data[_x + index])
+    finalTable.append(_row0)
 
 
 row_separator()
 
-for i in range(0, len(disks), args.col):
+for i in range(0, len(disks), args.columns):
     row_builder("device", diskDevice, i)
     row_builder("type", diskType, i)
     row_builder("mounts", diskMounts, i)
@@ -336,9 +337,14 @@ row_separator()
 #
 #
 #
+row0 = []
+for x in range(args.columns):
+    row0.append("right")
+    row0.append("left")
+print(tabulate(finalTable, colalign=row0, tablefmt="orgtbl"))
 
-print(tabulate(finalTable, colalign=("right",), tablefmt="orgtbl"))
-
+#
+#
 # delete tmp files
 subprocess.getoutput(f"rm {tempFileDF}")
 for disk in disks: subprocess.getoutput(f"rm {tempFiles[disk]}")
