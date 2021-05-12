@@ -60,7 +60,7 @@ if __name__ != "__main__": exit()
 parser = argparse.ArgumentParser(description="disk summary")
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 parser.add_argument("-d", "--disk", help="disk device name, can be part of it")
-parser.add_argument("-c", "--col", help="number of columns in the output", default=2, type=int, choices=[1, 2, 3],)
+parser.add_argument("-c", "--col", help="number of columns in the output", default=3, type=int, choices=[1, 2, 3],)
 parser.add_argument("device_type", choices=['all', 'ssd', 'hdd'], nargs='?', default='all', const='all',
                     help="which type of devices you would like to see? (default: %(default)s)")
 args = parser.parse_args()
@@ -121,7 +121,9 @@ for disk in disks:
 
 
 
-    if (args.device_type not in type0.lower()) and (args.device_type != 'all') : continue
+    if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
+      disks.pop()
+      continue
 
 
 
@@ -312,7 +314,6 @@ for i in range(0, len(disks), args.col):
   rowBuilder("power on hours", disk_hours, i)
   rowBuilder("data writes", disk_writes, i)
   rowBuilder("errors", disk_errors, i)
-
   rowSeparator()
 
 
@@ -322,7 +323,7 @@ for i in range(0, len(disks), args.col):
 #
 #
    
-totalCapacity  /= (1024*1024*1024*1024)
+totalCapacity  /= (1024*1024*1024*1024) # convert bytes to TB
 totalUsedSpace /= (1024*1024*1024*1024)
 totalFreeSpace = totalCapacity - totalUsedSpace
 if totalCapacity > 0:
@@ -340,9 +341,9 @@ elif used > 55:
 else:
   color0 = colorGREEN
 
-finalTable.append(["total capacity", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
-finalTable.append(["total free space",f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
-finalTable.append(["total used space",f"{color0}{colorBOLD}{tmp}{colorENDC}"])
+finalTable.append(["TOTAL space", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
+finalTable.append(["TOTAL free",f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
+finalTable.append(["TOTAL used",f"{color0}{colorBOLD}{tmp}{colorENDC}"])
 rowSeparator()
 
 
