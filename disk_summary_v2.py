@@ -327,9 +327,9 @@ elif used > 55:
 else:
     color0 = colorGREEN
 
-finalTable.append(["TOTAL space", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
-finalTable.append(["TOTAL free", f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
-finalTable.append(["TOTAL used", f"{color0}{colorBOLD}{tmp}{colorENDC}"])
+finalTable.append(["SPACE", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
+finalTable.append(["FREE", f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
+finalTable.append(["USED", f"{color0}{colorBOLD}{tmp}{colorENDC}"])
 row_separator()
 
 #
