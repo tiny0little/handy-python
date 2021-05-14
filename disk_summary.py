@@ -256,9 +256,8 @@ for disk in disks:
             propertyName = tmp2[1].strip()
             tmp1 = " ".join(tmp1.split())
             value = tmp1[tmp1.rfind("-") + 1:].strip()
-            if not value.isnumeric():
-                value = value.split(" ")[0].strip()
-            if value.isnumeric():
+            if not value.isnumeric(): value = value.split(" ")[0].strip()
+            if not propertyName.isnumeric() and value.isnumeric():
                 if int(value) > 0:
                     errors = errors + f"{propertyName} = {colorRED}{colorBOLD}{value}{colorENDC}\n"
 
@@ -268,6 +267,7 @@ for disk in disks:
 #
 #
 #
+
 
 def row_separator():
     _row0 = []
