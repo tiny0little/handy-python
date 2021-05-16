@@ -4,6 +4,7 @@ import subprocess
 import argparse
 from dateutil.parser import *
 from dateutil.relativedelta import relativedelta
+from halo import Halo
 
 TEMP_FILE = "/tmp/plots_per_day.tmp"
 dates = []
@@ -12,8 +13,8 @@ parser = argparse.ArgumentParser(description="counting how many CHIA plots made 
 parser.add_argument("-f", "--files", action='store_true', help="do not show plot files")
 args = parser.parse_args()
 
-subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' -exec ls -al {{}} \;"
-                     f" 2> /dev/null > {TEMP_FILE}")
+with Halo(color='white'): subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' "
+                                               f"-exec ls -al {{}} \; 2> /dev/null > {TEMP_FILE}")
 plots = subprocess.getoutput(f"cat {TEMP_FILE}").split("\n")
 
 for plot in plots:
@@ -50,6 +51,6 @@ for (mon, day) in dates:
             plotStartDatTime = parse(f"{tmp3[4]}-{tmp3[5]}-{tmp3[6]} {tmp3[7]}:{tmp3[8]}:00")
             plotProcTime = relativedelta(plotFileDataTime, plotStartDatTime)
             plotProcTimeInHours = plotProcTime.days * 24 + plotProcTime.hours
-            print(f"- {fileName} - completed in {plotProcTimeInHours} hours ")
+            print(f"- {fileName} - completed in {plotProcTimeInHours} hours {plotProcTime.minutes} minutes")
 
 subprocess.getoutput(f"rm {TEMP_FILE}")
