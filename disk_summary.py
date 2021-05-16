@@ -286,8 +286,6 @@ def row_builder(info_text, data, index):
     finalTable.append(_row0)
 
 
-row_separator()
-
 for i in range(0, len(disks), args.columns):
     row_builder("device", diskDevice, i)
     row_builder("type", diskType, i)
@@ -330,7 +328,6 @@ else:
 finalTable.append(["SPACE", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
 finalTable.append(["FREE", f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
 finalTable.append(["USED", f"{color0}{colorBOLD}{tmp}{colorENDC}"])
-row_separator()
 
 #
 #
@@ -341,7 +338,7 @@ row0 = []
 for x in range(args.columns):
     row0.append("right")
     row0.append("left")
-print(tabulate(finalTable, colalign=row0, tablefmt="orgtbl"))
+print(tabulate(finalTable, colalign=row0, tablefmt="pretty"))
 
 #
 #

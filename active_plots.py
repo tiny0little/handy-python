@@ -8,6 +8,17 @@ from datetime import *
 from tabulate import tabulate
 import os
 
+
+colorGREEN = '\033[92m'
+colorYELLOW = '\033[93m'
+colorRED = '\033[91m'
+colorENDC = '\033[0m'
+colorBOLD = '\033[1m'
+colorWHITEonPURPLE = '\33[45m'
+colorWHITEonGREEN = '\33[42m'
+colorWHITEonBLUE = '\33[44m'
+colorWHITEonRED = '\33[41m'
+
 log_location = "/home/user/.chia/mainnet/plotter"
 start_line = 1
 final_completed_table = []
@@ -38,7 +49,7 @@ def phase_time(_phase_number):
 
 #
 #
-final_completed_table.append(["log", "k", "completed in"])
+final_completed_table.append([f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "k", ""])
 log_files = glob.glob(f"{log_location}/*.log")
 for log_file in log_files:
 
@@ -129,14 +140,14 @@ for log_file in log_files:
     #
     running_time_tab.append(f"{running_time.days * 24 + running_time.hours:02d}:{running_time.minutes:02d}")
 
-final_active_table.append(["log", "k", "p1", "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
+final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 for i in range(len(log_files)):
     final_active_table.append([os.path.basename(log_files[i]), plot_size[i], phase1[i], phase1time[i],
                                phase2[i], phase2time[i], phase3[i], phase3time[i], phase4[i], phase4time[i],
                                running_time_tab[i]])
 
 tab_align = ['left', 'left', 'right']
-print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="orgtbl"))
+print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
 print()
 tab_align = ['left', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'left']
-print(tabulate(final_active_table, colalign=tab_align, headers="firstrow", tablefmt="orgtbl"))
+print(tabulate(final_active_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
