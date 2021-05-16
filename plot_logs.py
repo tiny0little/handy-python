@@ -8,7 +8,6 @@ from datetime import *
 from tabulate import tabulate
 import os
 
-
 colorGREEN = '\033[92m'
 colorYELLOW = '\033[93m'
 colorRED = '\033[91m'
@@ -20,135 +19,107 @@ colorWHITEonBLUE = '\33[44m'
 colorWHITEonRED = '\33[41m'
 
 log_location = "/home/user/.chia/mainnet/plotter"
-start_line = 1
 final_completed_table = []
 final_active_table = []
-plot_size = []
-phase1 = []
-phase1time = []
-phase2 = []
-phase2time = []
-phase3 = []
-phase3time = []
-phase4 = []
-phase4time = []
-running_time_tab = []
 
-
-def phase_time(_phase_number):
-    _output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Time for phase {_phase_number}' "
-                                   " | tail -1").split("seconds.")
-    if len(_output) > 1:
-        _output = int(float(_output[0].split("=")[1].strip()))
-        _min, _sec = divmod(_output, 60)
+def get_phase_time(_phase_number, _log_file, _start_line, _end_line):
+    _output0 = subprocess.getoutput(
+        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Time for phase {_phase_number}' "
+        " | tail -1").split("seconds.")
+    _output1 = ""
+    if len(_output0) > 1:
+        _output0 = int(float(_output0[0].split("=")[1].strip()))
+        _min, _sec = divmod(_output0, 60)
         _hours, _min = divmod(_min, 60)
-        return f"{_hours:02d}:{_min:02d}"
-    else:
-        return ""
+        _output1 = f"{_hours:02d}h{_min:02d}m"
+    return _output1
+
+
+def get_phase_progress(_phase_number, _log_file, _start_line, _end_line):
+    _search_text = "zzzzzzzzzzzzzzzzz"
+    if _phase_number == 1: _search_text = "Computing table"
+    if _phase_number == 2: _search_text = "Backpropagating on table"
+    if _phase_number == 3: _search_text = "Compressing tables"
+    if _phase_number == 4: _search_text = "Starting phase 4/4"
+    _output0 = int(subprocess.getoutput(
+        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_text}' | wc -l"))
+    _output1 = ""
+    if _output0 > 0:
+        for _i in range(int(_output0)): _output1 += "#"
+        for _i in range(6 - int(_output0)): _output1 += "."
+    return _output1
+
+
+def get_total_time(_log_file, _start_line, _end_line):
+    _output = int(float(subprocess.getoutput(f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} "
+                                             "| egrep 'Total time' ").split("seconds.")[0].strip().split(
+        "=")[1].strip()))
+    _min, _sec = divmod(_output, 60)
+    _hours, _min = divmod(_min, 60)
+    return f"{_hours:02d}h{_min:02d}m"
+
+
+def get_plot_size(_log_file, _start_line, _end_line):
+    _output = subprocess.getoutput(f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} "
+                                   "| egrep 'Plot size is'").split(":")[1].strip()
+    return _output
 
 
 #
 #
-final_completed_table.append([f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "k", ""])
+final_completed_table.append(
+    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "k", "p1 time", "p2 time", "p3 time", "p4 time",
+     "total time"])
+final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time",
+                           "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 log_files = glob.glob(f"{log_location}/*.log")
 for log_file in log_files:
 
+    start_line = 1
+    end_line = 1
+
     # checking if any completed plots in the logfile
-    line1 = 1
-    line2 = 1
     output = subprocess.getoutput(f"grep -n 'Total time' {log_file}").split("\n")
     for line in output:
-        line2 = line.split(":")[0].strip()
-        if line2.isnumeric():
-            plot_size0 = subprocess.getoutput(f"awk 'NR <= {line2} && NR >= {line1}' {log_file} "
-                                              "| egrep 'Plot size is'").split(":")[1].strip()
-            total_time = int(float(subprocess.getoutput(f"awk 'NR <= {line2} && NR >= {line1}' {log_file} | egrep "
-                                                        "'Total time' ").split("seconds.")[0].strip().split("=")[
-                                       1].strip()))
-            min0, sec0 = divmod(total_time, 60)
-            hours0, min0 = divmod(min0, 60)
-            final_completed_table.append([os.path.basename(log_file), plot_size0, f"{hours0:02d}:{min0:02d}"])
+        end_line0 = line.split(":")[0].strip()
+        if end_line0.isnumeric():
+            end_line = int(end_line0)
+            final_completed_table.append(
+                [os.path.basename(log_file), get_plot_size(log_file, start_line, end_line),
+                 get_phase_time(1, log_file, start_line, end_line),
+                 get_phase_time(2, log_file, start_line, end_line),
+                 get_phase_time(3, log_file, start_line, end_line),
+                 get_phase_time(4, log_file, start_line, end_line),
+                 get_total_time(log_file, start_line, end_line)])
+
+        start_line = end_line + 1
 
     #
-    # starting line of current plot
+    # processing currently running plot
     start_line = int(subprocess.getoutput(f"egrep -n 'Starting plotting progress into temporary' {log_file} "
                                           "| tail -1").split(":")[0].strip())
+    end_line = int(subprocess.getoutput(f"cat {log_file} | wc -l").strip())
 
     start_time = parse(subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep "
                                             "'Starting phase 1/4: Forward Propagation' "
                                             "| tail -1").split("...")[1].strip())
     running_time = relativedelta(datetime.now(), start_time)
-    output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Plot size is'")
-    plot_size.append(output.split(":")[1].strip())
 
-    #
-    #
-    output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Computing table' | wc -l")
-    if int(output) > 0:
-        output1 = ""
-        for i in range(int(output)): output1 += f"{i + 1},"
-        phase1.append(output1[:-1])
-    else:
-        phase1.append("")
+    final_active_table.append([os.path.basename(log_file), get_plot_size(log_file, start_line, end_line),
+                               get_phase_progress(1, log_file, start_line, end_line),
+                               get_phase_time(1, log_file, start_line, end_line),
+                               get_phase_progress(2, log_file, start_line, end_line),
+                               get_phase_time(2, log_file, start_line, end_line),
+                               get_phase_progress(3, log_file, start_line, end_line),
+                               get_phase_time(3, log_file, start_line, end_line),
+                               get_phase_progress(4, log_file, start_line, end_line),
+                               get_phase_time(4, log_file, start_line, end_line),
+                               f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
+                               ])
 
-    #
-    #
-    phase1time.append(phase_time(1))
 
-    #
-    #
-    output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Backpropagating on table' | wc -l")
-    if int(output) > 0:
-        output1 = ""
-        for i in range(int(output)): output1 += f"{7 - i},"
-        if output1[-2:] == "2,": output1 += "1,"
-        phase2.append(output1[:-1])
-    else:
-        phase2.append("")
-
-    #
-    #
-    phase2time.append(phase_time(2))
-
-    #
-    #
-    output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Compressing tables' | wc -l")
-    if int(output) > 0:
-        output1 = ""
-        for i in range(int(output)): output1 += f"{1 + i},"
-        phase3.append(output1[:-1])
-    else:
-        phase3.append("")
-
-    #
-    #
-    phase3time.append(phase_time(3))
-
-    #
-    #
-    output = subprocess.getoutput(f"awk 'NR >= {start_line}' {log_file} | egrep 'Starting phase 4/4' | wc -l")
-    if int(output) > 0:
-        phase4.append(".")
-    else:
-        phase4.append("")
-
-    #
-    #
-    phase4time.append(phase_time(4))
-
-    #
-    #
-    running_time_tab.append(f"{running_time.days * 24 + running_time.hours:02d}:{running_time.minutes:02d}")
-
-final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time",
-                           "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
-for i in range(len(log_files)):
-    final_active_table.append([os.path.basename(log_files[i]), plot_size[i], phase1[i], phase1time[i],
-                               phase2[i], phase2time[i], phase3[i], phase3time[i], phase4[i], phase4time[i],
-                               running_time_tab[i]])
-
-tab_align = ['left', 'left', 'right']
+tab_align = ['left', 'left', 'right', 'left', 'left', 'left', 'center']
 print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
 
-tab_align = ['left', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'left']
+tab_align = ['left', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'center']
 print(tabulate(final_active_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
