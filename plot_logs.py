@@ -140,7 +140,8 @@ for log_file in log_files:
     #
     running_time_tab.append(f"{running_time.days * 24 + running_time.hours:02d}:{running_time.minutes:02d}")
 
-final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
+final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time",
+                           "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 for i in range(len(log_files)):
     final_active_table.append([os.path.basename(log_files[i]), plot_size[i], phase1[i], phase1time[i],
                                phase2[i], phase2time[i], phase3[i], phase3time[i], phase4[i], phase4time[i],
@@ -148,6 +149,6 @@ for i in range(len(log_files)):
 
 tab_align = ['left', 'left', 'right']
 print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
-print()
+
 tab_align = ['left', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'left']
 print(tabulate(final_active_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
