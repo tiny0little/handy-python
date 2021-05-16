@@ -118,8 +118,8 @@ for log_file in log_files:
                                ])
 
 
-tab_align = ['left', 'left', 'right', 'left', 'left', 'left', 'center']
+tab_align = ['left', 'left', 'center', 'center', 'center', 'center', 'center']
 print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
 
-tab_align = ['left', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'center']
+tab_align = ['left', 'left', 'center', 'center', 'center', 'center', 'center', 'center', 'center', 'center', 'center']
 print(tabulate(final_active_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
