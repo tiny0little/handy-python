@@ -22,6 +22,7 @@ log_location = "/home/user/.chia/mainnet/plotter"
 final_completed_table = []
 final_active_table = []
 
+
 def get_phase_time(_phase_number, _log_file, _start_line, _end_line):
     _output0 = subprocess.getoutput(
         f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Time for phase {_phase_number}' "
@@ -35,18 +36,13 @@ def get_phase_time(_phase_number, _log_file, _start_line, _end_line):
     return _output1
 
 
-def get_phase_progress(_phase_number, _log_file, _start_line, _end_line):
-    _search_text = "zzzzzzzzzzzzzzzzz"
-    if _phase_number == 1: _search_text = "Computing table"
-    if _phase_number == 2: _search_text = "Backpropagating on table"
-    if _phase_number == 3: _search_text = "Compressing tables"
-    if _phase_number == 4: _search_text = "Starting phase 4/4"
+def get_phase_progress(_search_text, _log_file, _start_line, _end_line):
     _output0 = int(subprocess.getoutput(
         f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_text}' | wc -l"))
     _output1 = ""
     if _output0 > 0:
         for _i in range(int(_output0)): _output1 += "#"
-        for _i in range(6 - int(_output0)): _output1 += "."
+        for _i in range(7 - int(_output0)): _output1 += "."
     return _output1
 
 
@@ -67,9 +63,8 @@ def get_plot_size(_log_file, _start_line, _end_line):
 
 #
 #
-final_completed_table.append(
-    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "k", "p1 time", "p2 time", "p3 time", "p4 time",
-     "total time"])
+final_completed_table.append([f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "k", "p1 time",
+                              "p2 time", "p3 time", "p4 time", "total"])
 final_active_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "k", "p1", "p1 time",
                            "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 log_files = glob.glob(f"{log_location}/*.log")
@@ -106,17 +101,16 @@ for log_file in log_files:
     running_time = relativedelta(datetime.now(), start_time)
 
     final_active_table.append([os.path.basename(log_file), get_plot_size(log_file, start_line, end_line),
-                               get_phase_progress(1, log_file, start_line, end_line),
+                               get_phase_progress("Computing table", log_file, start_line, end_line),
                                get_phase_time(1, log_file, start_line, end_line),
-                               get_phase_progress(2, log_file, start_line, end_line),
+                               get_phase_progress("Backpropagating on table", log_file, start_line, end_line),
                                get_phase_time(2, log_file, start_line, end_line),
-                               get_phase_progress(3, log_file, start_line, end_line),
+                               get_phase_progress("Compressing tables", log_file, start_line, end_line),
                                get_phase_time(3, log_file, start_line, end_line),
-                               get_phase_progress(4, log_file, start_line, end_line),
+                               get_phase_progress("Starting phase 4/4", log_file, start_line, end_line),
                                get_phase_time(4, log_file, start_line, end_line),
                                f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
                                ])
-
 
 tab_align = ['left', 'left', 'center', 'center', 'center', 'center', 'center']
 print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
