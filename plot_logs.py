@@ -9,16 +9,6 @@ from tabulate import tabulate
 import os
 import argparse
 
-colorGREEN = '\033[92m'
-colorYELLOW = '\033[93m'
-colorRED = '\033[91m'
-colorENDC = '\033[0m'
-colorBOLD = '\033[1m'
-colorWHITEonPURPLE = '\33[45m'
-colorWHITEonGREEN = '\33[42m'
-colorWHITEonBLUE = '\33[44m'
-colorWHITEonRED = '\33[41m'
-
 log_location = "/home/user/.chia/mainnet/plotter"
 final_completed_table = []
 final_running_table = []
@@ -91,17 +81,30 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", help=f"location of plot logs. default {log_location}")
+parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
 args = parser.parse_args()
 
 if args.dir is not None: log_location = args.dir
 
 #
 #
+if args.nocolor:
+    colorENDC = ''
+    colorBOLD = ''
+    colorWHITEonGREEN = ''
+    colorWHITEonBLUE = ''
+else:
+    colorENDC = '\033[0m'
+    colorBOLD = '\033[1m'
+    colorWHITEonGREEN = '\33[42m'
+    colorWHITEonBLUE = '\33[44m'
+
 final_completed_table.append(
-    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "p1 time",
-     "p2 time", "p3 time", "p4 time", "cp time", "total"])
-final_running_table.append([f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "p1", "p1 time",
-                            "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
+    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "p1 time", "p2 time", "p3 time",
+     "p4 time", "cp time", "total"])
+final_running_table.append(
+    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "p1", "p1 time", "p2", "p2 time", "p3",
+     "p3 time", "p4", "p4 time", "runtime"])
 log_files = sorted(glob.glob(f"{log_location}/*log"))
 
 for log_file in log_files:

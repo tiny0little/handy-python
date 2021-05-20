@@ -1,16 +1,21 @@
 #!/usr/bin/python3.8
 
-import socket
+import socketserver
+import threading
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind(("", 12345))
-    s.listen()
-    conn, addr = s.accept()
-    with conn:
-        print('Connected by', addr)
-        while True:
-            data = conn.recv(1024)
-            print(data)
-            if quit in data:
-                break
-            conn.sendall(data)
+
+class MyTCPClientHandler(socketserver.StreamRequestHandler):
+
+    def handle(self):
+        msg = self.rfile.readline().strip()
+        result = ""
+        # self.wfile.write(msg.upper())
+        # print(f"Data Received from client is: {msg}")
+        if b'ver' in msg:
+            result = "0.0.1"
+
+        self.wfile.write(str.encode(result))
+
+
+TCPServerInstance = socketserver.ThreadingTCPServer(("127.0.0.1", 12345), MyTCPClientHandler)
+TCPServerInstance.serve_forever()
