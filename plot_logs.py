@@ -59,6 +59,22 @@ def get_plot_size(_log_file: str, _start_line: int, _end_line: int) -> str:
     return _output
 
 
+def get_buckets(_log_file: str, _start_line: int, _end_line: int) -> str:
+    _output = "??"
+    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ buckets'"
+    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+        _output = subprocess.getoutput(f"{_str}").split("Using")[1].split("buckets")[0].strip()
+    return _output
+
+
+def get_buffer_size(_log_file: str, _start_line: int, _end_line: int) -> str:
+    _output = "??"
+    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Buffer size is: [0-9]+MiB'"
+    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+        _output = subprocess.getoutput(f"{_str}").split("is:")[1].split("MiB")[0].strip()
+    return _output
+
+
 def get_temp_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     _output = "??"
     _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'progress into temporary dirs'"
@@ -100,11 +116,11 @@ else:
     colorWHITEonBLUE = '\33[44m'
 
 final_completed_table.append(
-    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "p1 time", "p2 time", "p3 time",
-     "p4 time", "cp time", "total"])
+    [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "buckets",
+     "buffer", "p1 time", "p2 time", "p3 time", "p4 time", "cp time", "total"])
 final_running_table.append(
-    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "p1", "p1 time", "p2", "p2 time", "p3",
-     "p3 time", "p4", "p4 time", "runtime"])
+    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "p1",
+     "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 log_files = sorted(glob.glob(f"{log_location}/*log"))
 
 for log_file in log_files:
@@ -124,6 +140,8 @@ for log_file in log_files:
                 [os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
                  get_final_dir(log_file, start_line, end_line),
                  get_plot_size(log_file, start_line, end_line),
+                 get_buckets(log_file, start_line, end_line),
+                 get_buffer_size(log_file, start_line, end_line),
                  get_time('Time for phase 1', log_file, start_line, end_line),
                  get_time('Time for phase 2', log_file, start_line, end_line),
                  get_time('Time for phase 3', log_file, start_line, end_line),
@@ -159,6 +177,8 @@ for log_file in log_files:
 
     final_running_table.append([os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
                                 get_plot_size(log_file, start_line, end_line),
+                                get_buckets(log_file, start_line, end_line),
+                                get_buffer_size(log_file, start_line, end_line),
                                 get_phase_progress("Computing table", 7, log_file, start_line, end_line),
                                 get_time('Time for phase 1', log_file, start_line, end_line),
                                 get_phase_progress("Backpropagating on table", 6, log_file, start_line, end_line),
@@ -171,10 +191,11 @@ for log_file in log_files:
                                 ])
 
 if len(final_completed_table) > 1:
-    tab_align = ['left', 'left', 'left', 'center', 'center', 'center', 'center', 'center', 'center', 'center']
+    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
+                 'center', 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
 
 if len(final_running_table) > 1:
-    tab_align = ['left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
+    tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
                  'center', 'center', 'center', 'center']
     print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))

@@ -1,20 +1,35 @@
 #!/usr/bin/python3.8
 
 import socketserver
-import threading
+
+VERSION = '0.0.1'
+nodes = []
 
 
 class MyTCPClientHandler(socketserver.StreamRequestHandler):
+    timeout = 60
 
     def handle(self):
-        msg = self.rfile.readline().strip()
-        result = ""
-        # self.wfile.write(msg.upper())
-        # print(f"Data Received from client is: {msg}")
-        if b'ver' in msg:
-            result = "0.0.1"
+        while True:
+            self.wfile.write(str.encode("> "))
+            msg = self.rfile.readline().strip()
+            result = ""
+            msg = msg.lower()
 
-        self.wfile.write(str.encode(result))
+            if b'quit' in msg:
+                break
+
+            elif b'ver' in msg:
+                result = VERSION
+
+            elif b'help' in msg:
+                result = "KNOWN COMMANDS ARE\nver help quit"
+
+            else:
+                result = "UNKNOWN COMMAND"
+
+            result += "\n"
+            self.wfile.write(str.encode(result))
 
 
 TCPServerInstance = socketserver.ThreadingTCPServer(("127.0.0.1", 12345), MyTCPClientHandler)
