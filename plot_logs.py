@@ -8,6 +8,7 @@ from datetime import *
 from tabulate import tabulate
 import os
 import argparse
+from operator import itemgetter
 
 log_location = "/home/user/.chia/mainnet/plotter"
 final_completed_table = []
@@ -97,6 +98,8 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", help=f"location of plot logs. default {log_location}")
+parser.add_argument("-s", "--sort", choices=['plot', 'time'], nargs='?', default='plot', const='plot',
+                    help="which column used for sorting the table? (default: %(default)s)")
 parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
 args = parser.parse_args()
 
@@ -121,7 +124,7 @@ final_completed_table.append(
 final_running_table.append(
     [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "p1",
      "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
-log_files = sorted(glob.glob(f"{log_location}/*log"))
+log_files = glob.glob(f"{log_location}/*log")
 
 for log_file in log_files:
 
@@ -191,11 +194,15 @@ for log_file in log_files:
                                 ])
 
 if len(final_completed_table) > 1:
+    if args.sort == 'plot': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
+    if args.sort == 'time': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
                  'center', 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
 
 if len(final_running_table) > 1:
+    if args.sort == 'plot': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
+    if args.sort == 'time': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
                  'center', 'center', 'center', 'center']
     print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
