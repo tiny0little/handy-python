@@ -170,7 +170,7 @@ for disk in disks:
         tmp = lines.split(" ")[-1].strip()
         if int(tmp) > 60:
             color0 = colorRED
-        elif int(tmp) > 50:
+        elif int(tmp) > 51:
             color0 = colorYELLOW
         else:
             color0 = colorGREEN
