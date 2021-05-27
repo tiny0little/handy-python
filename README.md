@@ -1,4 +1,2 @@
-### Handy Python Scripts
-
-a collection of handy utilities
+a collection of handy tools
 
