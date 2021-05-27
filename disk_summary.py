@@ -183,7 +183,6 @@ for disk in disks:
     #
     #
     #
-    #
 
     lines = subprocess.getoutput(f"cat {tempFileDF} | egrep {disk} | egrep -v efi")
     used = 0
