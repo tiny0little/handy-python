@@ -102,6 +102,13 @@ parser.add_argument("-d", "--dir", help=f"location of plot logs. default {log_lo
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='plot', const='plot',
                     help="which column used for sorting the table? (default: %(default)s)")
 parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
+parser.add_argument("-t", "--tabfmt", choices=["plain", "simple", "github", "grid", "fancy_grid",
+                                               "pipe", "orgtbl", "jira", "presto", "pretty", "psql", "rst",
+                                               "mediawiki", "moinmoin", "youtrack", "html", "unsafehtml", "latex",
+                                               "latex_raw", "latex_booktabs", "latex_longtable", "textile", "tsv"
+                                               ], nargs='?', default='pretty', const='pretty',
+                    help="table format")
+
 args = parser.parse_args()
 
 if args.dir is not None: log_location = args.dir
@@ -195,16 +202,18 @@ with Halo(color='white'):
                                     f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
                                     ])
 
+print()
+
 if len(final_completed_table) > 1:
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
                  'center', 'center']
-    print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
+    print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
 
 if len(final_running_table) > 1:
     if args.sort[0] == 'p': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
                  'center', 'center', 'center', 'center']
-    print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt="pretty"))
+    print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
