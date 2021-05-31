@@ -99,12 +99,16 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", help=f"location of plot logs. default {log_location}")
+parser.add_argument("-cp", "--completed_plots", choices=['0', '1'], nargs='?', default='1', const='1',
+                    help="show completed plots or not", )
+parser.add_argument("-rp", "--running_plots", choices=['0', '1'], nargs='?', default='1', const='1',
+                    help="show running plots or not", )
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='plot', const='plot',
                     help="which column used for sorting the table? (default: %(default)s)")
 parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
 parser.add_argument("-t", "--tabfmt", choices=["plain", "simple", "github", "grid", "fancy_grid",
                                                "pipe", "orgtbl", "jira", "presto", "pretty", "psql", "rst",
-                                               "mediawiki", "moinmoin", "youtrack", "html", "unsafehtml", "latex",
+                                               "mediawiki", "moinmoin", "youtrack", "unsafehtml", "latex",
                                                "latex_raw", "latex_booktabs", "latex_longtable", "textile", "tsv"
                                                ], nargs='?', default='pretty', const='pretty',
                     help="table format")
@@ -204,14 +208,14 @@ with Halo(color='white'):
 
 print()
 
-if len(final_completed_table) > 1:
+if len(final_completed_table) > 1 and args.completed_plots == '1':
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
                  'center', 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
 
-if len(final_running_table) > 1:
+if len(final_running_table) > 1 and args.running_plots == '1':
     if args.sort[0] == 'p': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
