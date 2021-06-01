@@ -6,6 +6,23 @@ import os
 from halo import Halo
 from tabulate import tabulate
 
+#
+#
+#
+colorGREEN = '\033[92m'
+colorYELLOW = '\033[93m'
+colorRED = '\033[91m'
+colorENDC = '\033[0m'
+colorBOLD = '\033[1m'
+colorWHITEonPURPLE = '\33[45m'
+colorWHITEonGREEN = '\33[42m'
+colorWHITEonBLUE = '\33[44m'
+colorWHITEonRED = '\33[41m'
+#
+#
+#
+
+
 finalTable = []
 
 parser = argparse.ArgumentParser(description="counting CHIA plots")
@@ -17,11 +34,6 @@ with Halo(color='white'):
                                      " | egrep 'The network has an estimated'")
     netspace0 = netspace0.split("The network has an estimated")[1].split("EiB")[0].strip()
     netspace = float(netspace0)  # in EiB
-
-    #
-    time_to_win = subprocess.getoutput("cd ~/src/chia-blockchain/ && . ./activate && chia farm summary "
-                                       " | egrep 'Expected time to win'")
-    time_to_win = time_to_win.split("Expected time to win:")[1].strip()
 
     #
     if args.k is None:
@@ -41,18 +53,18 @@ with Halo(color='white'):
 #
 # convert bytes to TiB
 size = size / 1.099511628e+12
+possible_reward = (4608 * 2 * size / (netspace * 1.049e+6))
+days_to_win = f"{int(2 / possible_reward)}"
 
 if args.k is None:
-    finalTable.append(["total plots count", len(plots)])
-    finalTable.append(["total plots  size", f"{size:.3f} TiB"])
-    finalTable.append(["total XCH netspace", f"{netspace:.3f} EiB"])
-    finalTable.append(["my space contribution", f"{(size / (netspace * 1.049e+6)):.8f}%"])
-    finalTable.append(["possible reward", f"{(4608 * 2 * size / (netspace * 1.049e+6)):.5f} XCH per day"])
-    finalTable.append(["expected time to win", time_to_win])
+    finalTable.append(["total plots count", f"{colorWHITEonGREEN}{colorBOLD}{len(plots)}{colorENDC}"])
+    finalTable.append(["total plots  size", f"{colorWHITEonPURPLE}{colorBOLD}{size:.2f}{colorENDC} TiB"])
+    finalTable.append(["total XCH netspace", f"{netspace:.2f} EiB"])
+    finalTable.append(["my space contribution", f"{(size / (netspace * 1.049e+6)):.10f}%"])
+    finalTable.append(["possible reward", f"{possible_reward:.5f} XCH per day"])
+    finalTable.append(["days to win", days_to_win])
 else:
-    # print(f"plot k{args.k} count : {len(plots)}")
     finalTable.append([f"plot-k{args.k} count", f"{len(plots)}"])
-    # print(f"plot k{args.k} size  : {size:.2f} TB")
     finalTable.append([f"plot-k{args.k}  size", f"{size:.2f} TB"])
 
 row0 = ['right', 'left']
