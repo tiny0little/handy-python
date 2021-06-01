@@ -10,8 +10,10 @@ import os
 import argparse
 from operator import itemgetter
 from halo import Halo
+from pathlib import Path
 
-log_location = "/home/user/.chia/mainnet/plotter"
+
+log_location = str(Path.home()) + "/.chia/mainnet/plotter"
 final_completed_table = []
 final_running_table = []
 
@@ -98,24 +100,23 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
-parser.add_argument("-d", "--dir", help=f"location of plot logs. default {log_location}")
+parser.add_argument("-d", "--dir", default=f"{log_location}", help=f"location of plot logs (default: %(default)s)")
 parser.add_argument("-cp", "--completed_plots", choices=['0', '1'], nargs='?', default='1', const='1',
-                    help="show completed plots or not", )
+                    help="show completed plots or not (default: %(default)s)", )
 parser.add_argument("-rp", "--running_plots", choices=['0', '1'], nargs='?', default='1', const='1',
-                    help="show running plots or not", )
+                    help="show running plots or not (default: %(default)s)", )
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='plot', const='plot',
                     help="which column used for sorting the table? (default: %(default)s)")
 parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
-parser.add_argument("-t", "--tabfmt", choices=["plain", "simple", "github", "grid", "fancy_grid",
-                                               "pipe", "orgtbl", "jira", "presto", "pretty", "psql", "rst",
-                                               "mediawiki", "moinmoin", "youtrack", "unsafehtml", "latex",
-                                               "latex_raw", "latex_booktabs", "latex_longtable", "textile", "tsv"
-                                               ], nargs='?', default='pretty', const='pretty',
+parser.add_argument("-t", "--tabfmt",
+                    choices=["plain", "simple", "github", "grid", "fancy_grid", "pipe", "orgtbl", "presto",
+                             "pretty", "psql", "rst", "tsv"
+                             ], nargs='?', default='pretty', const='pretty',
                     help="table format")
 
 args = parser.parse_args()
 
-if args.dir is not None: log_location = args.dir
+log_location = args.dir
 
 #
 #

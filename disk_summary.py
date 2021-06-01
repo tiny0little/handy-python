@@ -168,9 +168,9 @@ for disk in disks:
         if lines.rfind("C", -10) > 0:
             lines = lines[:lines.rfind("C", -10)].strip()
         tmp = lines.split(" ")[-1].strip()
-        if int(tmp) > 60:
+        if int(tmp) > 55:
             color0 = colorRED
-        elif int(tmp) > 51:
+        elif int(tmp) > 48:
             color0 = colorYELLOW
         else:
             color0 = colorGREEN
