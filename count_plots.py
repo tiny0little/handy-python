@@ -61,8 +61,8 @@ if args.k is None:
     finalTable.append(["total plots  size", f"{colorWHITEonPURPLE}{colorBOLD}{size:.2f}{colorENDC} TiB"])
     finalTable.append(["total XCH netspace", f"{netspace:.2f} EiB"])
     finalTable.append(["my space contribution", f"{(size / (netspace * 1.049e+6)):.10f}%"])
-    finalTable.append(["possible reward", f"{possible_reward:.5f} XCH per day"])
-    finalTable.append(["days to win", days_to_win])
+    finalTable.append(["possible reward", f"{possible_reward:.5f}xch per day"])
+    finalTable.append(["days to win 2xch", days_to_win])
 else:
     finalTable.append([f"plot-k{args.k} count", f"{len(plots)}"])
     finalTable.append([f"plot-k{args.k}  size", f"{size:.2f} TB"])

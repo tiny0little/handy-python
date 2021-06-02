@@ -12,7 +12,6 @@ from operator import itemgetter
 from halo import Halo
 from pathlib import Path
 
-
 log_location = str(Path.home()) + "/.chia/mainnet/plotter"
 final_completed_table = []
 final_running_table = []
@@ -101,10 +100,8 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", default=f"{log_location}", help=f"location of plot logs (default: %(default)s)")
-parser.add_argument("-cp", "--completed_plots", choices=['0', '1'], nargs='?', default='1', const='1',
-                    help="show completed plots or not (default: %(default)s)", )
-parser.add_argument("-rp", "--running_plots", choices=['0', '1'], nargs='?', default='1', const='1',
-                    help="show running plots or not (default: %(default)s)", )
+parser.add_argument("-p", "--pattern", default="*", help=f"log file name pattern (default: %(default)s)")
+parser.add_argument("-cp", "--completed_plots", action="store_true", help="show completed plots")
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='plot', const='plot',
                     help="which column used for sorting the table? (default: %(default)s)")
 parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
@@ -137,7 +134,7 @@ final_completed_table.append(
 final_running_table.append(
     [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "p1",
      "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
-log_files = glob.glob(f"{log_location}/*log")
+log_files = glob.glob(f"{log_location}/*{args.pattern}*log")
 
 with Halo(color='white'):
     for log_file in log_files:
@@ -207,16 +204,16 @@ with Halo(color='white'):
                                     f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
                                     ])
 
-print()
+# print()
 
-if len(final_completed_table) > 1 and args.completed_plots == '1':
+if len(final_completed_table) > 1 and args.completed_plots:
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
                  'center', 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
 
-if len(final_running_table) > 1 and args.running_plots == '1':
+if len(final_running_table) > 1:
     if args.sort[0] == 'p': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',

@@ -247,7 +247,7 @@ for disk in disks:
     errors = ""
     tmp0 = subprocess.getoutput(
         f"cat {tempFiles[disk]} | egrep 'Reallocated_Sector|Current_Pending_Sector|Calibration_Retry_Count|"
-        "Command_Timeout|Spin_Retry_Count|Calibration_Retry_Count|Offline_Uncorrectable|Error' |"
+        "Spin_Retry_Count|Calibration_Retry_Count|Offline_Uncorrectable|Error' |"
         "egrep -v 'Error_Rate'").split("\n")
     for tmp1 in tmp0:
         tmp2 = " ".join(tmp1.split()).split(" ")
