@@ -100,7 +100,7 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", default=f"{log_location}", help=f"location of plot logs (default: %(default)s)")
-parser.add_argument("-p", "--pattern", default="*", help=f"log file name pattern (default: %(default)s)")
+parser.add_argument("-l", "--log_file", default="*", help=f"log file name pattern (default: %(default)s)")
 parser.add_argument("-cp", "--completed_plots", action="store_true", help="show completed plots")
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='plot', const='plot',
                     help="which column used for sorting the table? (default: %(default)s)")
@@ -134,7 +134,7 @@ final_completed_table.append(
 final_running_table.append(
     [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "p1",
      "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
-log_files = glob.glob(f"{log_location}/*{args.pattern}*log")
+log_files = glob.glob(f"{log_location}/*{args.log_file}*log")
 
 with Halo(color='white'):
     for log_file in log_files:
@@ -145,25 +145,26 @@ with Halo(color='white'):
         #
         # processing completed plots
         #
-        output = subprocess.getoutput(f"grep -n 'Copy time' {log_file}").split("\n")
-        for line in output:
-            end_line0 = line.split(":")[0].strip()
-            if end_line0.isnumeric():
-                end_line = int(end_line0)
-                final_completed_table.append(
-                    [os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
-                     get_final_dir(log_file, start_line, end_line),
-                     get_plot_size(log_file, start_line, end_line),
-                     get_buckets(log_file, start_line, end_line),
-                     get_buffer_size(log_file, start_line, end_line),
-                     get_time('Time for phase 1', log_file, start_line, end_line),
-                     get_time('Time for phase 2', log_file, start_line, end_line),
-                     get_time('Time for phase 3', log_file, start_line, end_line),
-                     get_time('Time for phase 4', log_file, start_line, end_line),
-                     get_time("Copy time", log_file, start_line, end_line),
-                     get_time2("Total time", "Copy time", log_file, start_line, end_line)])
+        if args.completed_plots:
+            output = subprocess.getoutput(f"grep -n 'Copy time' {log_file}").split("\n")
+            for line in output:
+                end_line0 = line.split(":")[0].strip()
+                if end_line0.isnumeric():
+                    end_line = int(end_line0)
+                    final_completed_table.append(
+                        [os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
+                         get_final_dir(log_file, start_line, end_line),
+                         get_plot_size(log_file, start_line, end_line),
+                         get_buckets(log_file, start_line, end_line),
+                         get_buffer_size(log_file, start_line, end_line),
+                         get_time('Time for phase 1', log_file, start_line, end_line),
+                         get_time('Time for phase 2', log_file, start_line, end_line),
+                         get_time('Time for phase 3', log_file, start_line, end_line),
+                         get_time('Time for phase 4', log_file, start_line, end_line),
+                         get_time("Copy time", log_file, start_line, end_line),
+                         get_time2("Total time", "Copy time", log_file, start_line, end_line)])
 
-            start_line = end_line + 1
+                start_line = end_line + 1
 
         #
         # processing currently running plot
