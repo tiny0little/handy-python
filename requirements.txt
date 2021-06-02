@@ -1,4 +1,3 @@
 tabulate
 halo
-argparse
 
