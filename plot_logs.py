@@ -70,6 +70,14 @@ def get_buckets(_log_file: str, _start_line: int, _end_line: int) -> str:
     return _output
 
 
+def get_threads(_log_file: str, _start_line: int, _end_line: int) -> str:
+    _output = "??"
+    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ threads'"
+    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+        _output = subprocess.getoutput(f"{_str}").split("Using")[1].split("threads")[0].strip()
+    return _output
+
+
 def get_buffer_size(_log_file: str, _start_line: int, _end_line: int) -> str:
     _output = "??"
     _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Buffer size is: [0-9]+MiB'"
@@ -130,9 +138,9 @@ else:
 
 final_completed_table.append(
     [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "buckets",
-     "buffer", "p1 time", "p2 time", "p3 time", "p4 time", "cp time", "total"])
+     "buffer", "threads", "p1 time", "p2 time", "p3 time", "p4 time", "cp time", "total"])
 final_running_table.append(
-    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "p1",
+    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "threads", "p1",
      "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 log_files = glob.glob(f"{log_location}/*{args.log_file}*log")
 
@@ -157,6 +165,7 @@ with Halo(color='white'):
                          get_plot_size(log_file, start_line, end_line),
                          get_buckets(log_file, start_line, end_line),
                          get_buffer_size(log_file, start_line, end_line),
+                         get_threads(log_file, start_line, end_line),
                          get_time('Time for phase 1', log_file, start_line, end_line),
                          get_time('Time for phase 2', log_file, start_line, end_line),
                          get_time('Time for phase 3', log_file, start_line, end_line),
@@ -194,6 +203,7 @@ with Halo(color='white'):
                                     get_plot_size(log_file, start_line, end_line),
                                     get_buckets(log_file, start_line, end_line),
                                     get_buffer_size(log_file, start_line, end_line),
+                                    get_threads(log_file, start_line, end_line),
                                     get_phase_progress("Computing table", 7, log_file, start_line, end_line),
                                     get_time('Time for phase 1', log_file, start_line, end_line),
                                     get_phase_progress("Backpropagating on table", 6, log_file, start_line, end_line),
@@ -210,13 +220,13 @@ with Halo(color='white'):
 if len(final_completed_table) > 1 and args.completed_plots:
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
-    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
+    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
                  'center', 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
 
 if len(final_running_table) > 1:
     if args.sort[0] == 'p': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
-    tab_align = ['left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
+    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
                  'center', 'center', 'center', 'center']
     print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))

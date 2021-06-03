@@ -104,7 +104,6 @@ with Halo(color='white'):
 #
 # go disk by disk and build the final table
 #
-print(disks)
 for disk in disks:
 
     lines = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep Rotation").split("\n")
