@@ -104,6 +104,7 @@ with Halo(color='white'):
 #
 # go disk by disk and build the final table
 #
+print(disks)
 for disk in disks:
 
     lines = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep Rotation").split("\n")
@@ -111,7 +112,8 @@ for disk in disks:
     if "rpm" in lines[0]: type0 = f"{colorWHITEonPURPLE}HDD{colorENDC}"
 
     if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
-        disks.pop()
+        # TODO: commented out. why did I do that???
+        #disks.pop()
         continue
 
     diskType.append(type0)
