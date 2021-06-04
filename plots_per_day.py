@@ -41,10 +41,10 @@ with Halo(color='white'):
 #
 #
 
+
 for index0, row0 in dates_df.iterrows():
     if args.files: tabu_table = []
 
-    #print()
     date0 = f"{row0['year']}-{row0['mon']:02.0f}-{row0['day']:02.0f}"
     files0 = plots_df.loc[
         (plots_df['year'] == row0['year']) &
