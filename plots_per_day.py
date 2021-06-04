@@ -2,55 +2,79 @@
 
 import subprocess
 import argparse
-from dateutil.parser import *
-from dateutil.relativedelta import relativedelta
 from halo import Halo
+import pathlib
+import datetime
+import time
+import pandas as pd
+from tabulate import tabulate
 
-TEMP_FILE = "/tmp/plots_per_day.tmp"
-dates = []
+temp_file = "/tmp/plots_per_day.tmp"
+tabu_table = []
+dates_df = pd.DataFrame(columns=['year', 'mon', 'day'])
+plots_df = pd.DataFrame(columns=['year', 'mon', 'day', 'file_name'])
 
 parser = argparse.ArgumentParser(description="counting how many CHIA plots made per day")
-parser.add_argument("-f", "--files", action='store_true', help="do not show plot files")
 args = parser.parse_args()
 
-with Halo(color='white'): subprocess.getoutput(f"find /home/ /media/ -path '*CHIA*' -name 'plot*plot' "
-                                               f"-exec ls -al {{}} \; 2> /dev/null > {TEMP_FILE}")
-plots = subprocess.getoutput(f"cat {TEMP_FILE}").split("\n")
+#
+#
 
-for plot in plots:
-    tmp0 = " ".join(plot.split()).split(" ")
-    mon = tmp0[5]
-    day = int(tmp0[6])
-    dates.append((mon, day))
+with Halo(color='white'):
+    subprocess.getoutput(f"find /media/ -path '*CHIA*' -name 'plot*plot' -exec ls {{}} \; 2> /dev/null > {temp_file}")
+    plots0 = subprocess.getoutput(f"cat {temp_file}").split("\n")
+    subprocess.getoutput(f"rm {temp_file}")
 
-# remove duplicates and sort
-dates = list(set(dates))
-dates.sort()
+    for plot in plots0:
+        fname = pathlib.Path(plot.strip())
+        year = datetime.datetime.fromtimestamp(fname.stat().st_mtime).year
+        mon = datetime.datetime.fromtimestamp(fname.stat().st_mtime).month
+        day = datetime.datetime.fromtimestamp(fname.stat().st_mtime).day
+        dates_df = dates_df.append({'year': year, 'mon': mon, 'day': day}, ignore_index=True)
+        plots_df = plots_df.append({'file_name': plot.strip(), 'year': year, 'mon': mon, 'day': day}, ignore_index=True)
 
-for (mon, day) in dates:
-    print(f"{mon}:{day}")
+    dates_df = dates_df.drop_duplicates()
+    dates_df = dates_df.sort_values(by=['year', 'mon', 'day'])
 
-    tmp0 = subprocess.getoutput(f"cat {TEMP_FILE} | egrep '\s+{mon}\s+{day}\s+' | wc")
-    numberOfPlots = " ".join(tmp0.split()).split(" ")[0]
-    print(f"- number of plots: {numberOfPlots}")
+#
+#
 
-    tmp0 = subprocess.getoutput(f"cat {TEMP_FILE} | egrep '\s+{mon}\s+{day}\s+'").split("\n")
-    size = 0
-    for tmp1 in tmp0:
-        size += int(tmp1.split(" ")[4])
-    size = size / (1024 * 1024 * 1024 * 1024)
-    print(f"- size of plots: {size:.1f}TB")
+for index0, row0 in dates_df.iterrows():
+    tabu_table = []
 
-    if args.files is False:
-        tmp0 = subprocess.getoutput(f"cat {TEMP_FILE} | egrep '\s+{mon}\s+{day}\s+'").split("\n")
-        for tmp1 in tmp0:
-            tmp2 = " ".join(tmp1.split()).split(" ")
-            fileName = tmp2[8]
-            plotFileDataTime = parse(f"{tmp2[5]} {tmp2[6]} {tmp2[7]}")
-            tmp3 = fileName.split("-")
-            plotStartDatTime = parse(f"{tmp3[4]}-{tmp3[5]}-{tmp3[6]} {tmp3[7]}:{tmp3[8]}:00")
-            plotProcTime = relativedelta(plotFileDataTime, plotStartDatTime)
-            plotProcTimeInHours = plotProcTime.days * 24 + plotProcTime.hours
-            print(f"- {fileName} - completed in {plotProcTimeInHours} hours {plotProcTime.minutes} minutes")
+    print()
+    date0 = f"{row0['year']}-{row0['mon']:02.0f}-{row0['day']:02.0f}"
+    files0 = plots_df.loc[
+        (plots_df['year'] == row0['year']) &
+        (plots_df['mon'] == row0['mon']) &
+        (plots_df['day'] == row0['day'])]
+    plots0 = f"{files0['file_name'].count()}"
 
-subprocess.getoutput(f"rm {TEMP_FILE}")
+    file_size = 0
+    for index1, row1 in files0.iterrows():
+        fname = pathlib.Path(row1['file_name'])
+        file_size += fname.stat().st_size
+    file_size *= 1e-12
+    total_size0 = f"{file_size:.1f} TB"
+
+    tabu_table.append([date0, plots0, total_size0])
+    row0 = ['left', 'left', 'left']
+    print(tabulate(tabu_table, headers=['date', 'total plots', 'total size'], colalign=row0, tablefmt='pretty'))
+
+    #
+    #
+
+    tabu_table = []
+    for index1, row1 in files0.iterrows():
+        fname = pathlib.Path(row1['file_name'])
+        plot_finish_time = fname.stat().st_mtime
+        tmp0 = row1['file_name'].split('plot-')[1].split('-')[1:-1]
+        tmp1 = f"{tmp0[0]}-{tmp0[1]}-{tmp0[2]} {tmp0[3]}:{tmp0[4]}"
+        plot_start_time = time.mktime(datetime.datetime.strptime(tmp1, "%Y-%m-%d %H:%M").timetuple())
+        plot_time_in_sec = plot_finish_time - plot_start_time
+        min0, sec0 = divmod(plot_time_in_sec, 60)
+        hour0, min0 = divmod(min0, 60)
+        tabu_table.append([row1['file_name'], f"{hour0:02.0f}:{min0:02.0f}"])
+
+    row0 = ['left', 'left']
+    print(tabulate(tabu_table, headers=['file name', ''], colalign=row0, tablefmt='pretty'))
