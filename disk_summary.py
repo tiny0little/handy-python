@@ -112,7 +112,7 @@ for disk in disks:
 
     if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
         # TODO: commented out. why did I do that???
-        #disks.pop()
+        # disks.pop()
         continue
 
     diskType.append(type0)
@@ -261,6 +261,8 @@ for disk in disks:
                 if int(value) > 0:
                     errors = errors + f"{propertyName} = {colorRED}{colorBOLD}{value}{colorENDC}\n"
 
+    tmp0 = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep 'failure'").split("\n")
+    if len(tmp0) > 1: errors = errors + f"{colorRED}{colorBOLD}self-test failure{colorENDC}\n"
     diskErrors.append(errors)
 
 
