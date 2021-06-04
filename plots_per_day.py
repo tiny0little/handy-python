@@ -15,6 +15,8 @@ dates_df = pd.DataFrame(columns=['year', 'mon', 'day'])
 plots_df = pd.DataFrame(columns=['year', 'mon', 'day', 'file_name'])
 
 parser = argparse.ArgumentParser(description="counting how many CHIA plots made per day")
+parser.add_argument("-f", "--files", help="show plot files or not (default: %(default)s)",
+                    default=1, type=int, choices=[0, 1])
 args = parser.parse_args()
 
 #
@@ -40,9 +42,9 @@ with Halo(color='white'):
 #
 
 for index0, row0 in dates_df.iterrows():
-    tabu_table = []
+    if args.files: tabu_table = []
 
-    print()
+    #print()
     date0 = f"{row0['year']}-{row0['mon']:02.0f}-{row0['day']:02.0f}"
     files0 = plots_df.loc[
         (plots_df['year'] == row0['year']) &
@@ -58,23 +60,29 @@ for index0, row0 in dates_df.iterrows():
     total_size0 = f"{file_size:.1f} TB"
 
     tabu_table.append([date0, plots0, total_size0])
+    if args.files:
+        row0 = ['left', 'left', 'left']
+        print(tabulate(tabu_table, headers=['date', 'total plots', 'total size'], colalign=row0, tablefmt='pretty'))
+
+    #
+    #
+
+    if args.files:
+        tabu_table = []
+        for index1, row1 in files0.iterrows():
+            fname = pathlib.Path(row1['file_name'])
+            plot_finish_time = fname.stat().st_mtime
+            tmp0 = row1['file_name'].split('plot-')[1].split('-')[1:-1]
+            tmp1 = f"{tmp0[0]}-{tmp0[1]}-{tmp0[2]} {tmp0[3]}:{tmp0[4]}"
+            plot_start_time = time.mktime(datetime.datetime.strptime(tmp1, "%Y-%m-%d %H:%M").timetuple())
+            plot_time_in_sec = plot_finish_time - plot_start_time
+            min0, sec0 = divmod(plot_time_in_sec, 60)
+            hour0, min0 = divmod(min0, 60)
+            tabu_table.append([row1['file_name'], f"{hour0:02.0f}:{min0:02.0f}"])
+
+        row0 = ['left', 'left']
+        print(tabulate(tabu_table, headers=['file name', ''], colalign=row0, tablefmt='pretty'))
+
+if not args.files:
     row0 = ['left', 'left', 'left']
     print(tabulate(tabu_table, headers=['date', 'total plots', 'total size'], colalign=row0, tablefmt='pretty'))
-
-    #
-    #
-
-    tabu_table = []
-    for index1, row1 in files0.iterrows():
-        fname = pathlib.Path(row1['file_name'])
-        plot_finish_time = fname.stat().st_mtime
-        tmp0 = row1['file_name'].split('plot-')[1].split('-')[1:-1]
-        tmp1 = f"{tmp0[0]}-{tmp0[1]}-{tmp0[2]} {tmp0[3]}:{tmp0[4]}"
-        plot_start_time = time.mktime(datetime.datetime.strptime(tmp1, "%Y-%m-%d %H:%M").timetuple())
-        plot_time_in_sec = plot_finish_time - plot_start_time
-        min0, sec0 = divmod(plot_time_in_sec, 60)
-        hour0, min0 = divmod(min0, 60)
-        tabu_table.append([row1['file_name'], f"{hour0:02.0f}:{min0:02.0f}"])
-
-    row0 = ['left', 'left']
-    print(tabulate(tabu_table, headers=['file name', ''], colalign=row0, tablefmt='pretty'))
