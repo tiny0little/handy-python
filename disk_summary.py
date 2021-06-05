@@ -261,6 +261,10 @@ for disk in disks:
                 if int(value) > 0:
                     errors = errors + f"{propertyName} = {colorRED}{colorBOLD}{value}{colorENDC}\n"
 
+    tmp0 = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep 'test remaining'").split("\n")
+    if tmp0[0] == '': tmp0.pop()
+    if len(tmp0) > 0: errors = errors + f"{colorWHITEonGREEN}{colorBOLD}{tmp0[0][:-1].strip()}{colorENDC}\n"
+
     tmp0 = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep 'failure'").split("\n")
     if len(tmp0) > 1: errors = errors + f"{colorRED}{colorBOLD}self-test failure{colorENDC}\n"
     diskErrors.append(errors)

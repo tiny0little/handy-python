@@ -85,4 +85,4 @@ for index0, row0 in dates_df.iterrows():
 
 if not args.files:
     row0 = ['left', 'left', 'left']
-    print(tabulate(tabu_table, headers=['date', 'total plots', 'total size'], colalign=row0, tablefmt='pretty'))
+    print(tabulate(tabu_table, headers=['date', 'plots', 'size'], colalign=row0, tablefmt='pretty'))
