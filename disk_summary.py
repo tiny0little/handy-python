@@ -183,7 +183,6 @@ for disk in disks:
     #
     #
     #
-    #
 
     lines = subprocess.getoutput(f"cat {tempFileDF} | egrep {disk} | egrep -v efi")
     used = 0
@@ -198,9 +197,9 @@ for disk in disks:
         for i in range(int(100 / gaugeScale - int(used) / gaugeScale)):
             tmp += "."
         tmp += "]"
-        if used > 70:
+        if used > 85:
             color0 = colorRED
-        elif used > 55:
+        elif used > 70:
             color0 = colorYELLOW
         else:
             color0 = colorGREEN
@@ -211,8 +210,7 @@ for disk in disks:
     #
     #
     #
-    #
-    #
+
     lines = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep Hour | egrep -v 'Fly|Load'")
     if "(" in lines:
         tmp = lines.split("(")
@@ -223,8 +221,7 @@ for disk in disks:
     #
     #
     #
-    #
-    #
+
     if "SSD" in type0:
         lines = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep Writ | egrep -v 'Comma|NAND'")
         if len(lines) > 0:
@@ -324,9 +321,9 @@ for i in range(int(int(used) / gaugeScale)):
 for i in range(int(100 / gaugeScale - int(used) / gaugeScale)):
     tmp += "."
 tmp += "]"
-if used > 70:
+if used > 85:
     color0 = colorRED
-elif used > 55:
+elif used > 70:
     color0 = colorYELLOW
 else:
     color0 = colorGREEN
