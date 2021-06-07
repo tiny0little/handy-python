@@ -1,36 +1,11 @@
 #!/usr/bin/python3.8
 
-import socketserver
+import subprocess
 
-VERSION = '0.0.1'
-nodes = []
+files = subprocess.getoutput("ls /media/HDD-*/*/*plot").split("\n")
 
-
-class MyTCPClientHandler(socketserver.StreamRequestHandler):
-    timeout = 60
-
-    def handle(self):
-        while True:
-            self.wfile.write(str.encode("> "))
-            msg = self.rfile.readline().strip()
-            result = ""
-            msg = msg.lower()
-
-            if b'quit' in msg:
-                break
-
-            elif b'ver' in msg:
-                result = VERSION
-
-            elif b'help' in msg:
-                result = "KNOWN COMMANDS ARE\nver help quit"
-
-            else:
-                result = "UNKNOWN COMMAND"
-
-            result += "\n"
-            self.wfile.write(str.encode(result))
-
-
-TCPServerInstance = socketserver.ThreadingTCPServer(("127.0.0.1", 12345), MyTCPClientHandler)
-TCPServerInstance.serve_forever()
+for file in files:
+    tmp0 = file.split("-")[-1].split(".")[0]
+    count = int(subprocess.getoutput(f"ls /media/HDD-*/*/*{tmp0}* | wc -l").split("\n")[0])
+    if count > 1:
+        print(f"{tmp0} is more than one")
