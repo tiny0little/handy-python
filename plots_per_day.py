@@ -9,7 +9,22 @@ import time
 import pandas as pd
 from tabulate import tabulate
 
-temp_file = "/tmp/plots_per_day.tmp"
+#
+#
+
+colorGREEN = '\033[92m'
+colorYELLOW = '\033[93m'
+colorRED = '\033[91m'
+colorENDC = '\033[0m'
+colorBOLD = '\033[1m'
+colorWHITEonPURPLE = '\33[45m'
+colorWHITEonGREEN = '\33[42m'
+colorWHITEonBLUE = '\33[44m'
+colorWHITEonRED = '\33[41m'
+
+#
+#
+
 tabu_table = []
 dates_df = pd.DataFrame(columns=['year', 'mon', 'day'])
 plots_df = pd.DataFrame(columns=['year', 'mon', 'day', 'file_name'])
@@ -25,9 +40,12 @@ args = parser.parse_args()
 #
 
 with Halo(color='white'):
-    subprocess.getoutput(f"find /media/ -path '*CHIA*' -name 'plot*plot' -exec ls {{}} \; 2> /dev/null > {temp_file}")
-    plots0 = subprocess.getoutput(f"cat {temp_file}").split("\n")
-    subprocess.getoutput(f"rm {temp_file}")
+    small_plots = subprocess.getoutput("find /media/ -path '*CHIA*' -name 'plot*plot' -size -99G  2> /dev/null") \
+        .split("\n")
+    if small_plots[0] == '': small_plots.pop()
+
+    plots0 = subprocess.getoutput("find /media/ -path '*CHIA*' -name 'plot*plot' -exec ls {} \; 2> /dev/null") \
+        .split("\n")
 
     for plot in plots0:
         fname = pathlib.Path(plot.strip())
@@ -89,3 +107,13 @@ for index0, row0 in dates_df.iterrows():
 if not args.files:
     row0 = ['left', 'left', 'left']
     print(tabulate(tabu_table, headers=['date', 'plots', 'size'], colalign=row0, tablefmt='pretty'))
+
+# plots with errors
+if len(small_plots) > 0:
+    tabu_table = []
+    for plot in small_plots:
+        fname = pathlib.Path(plot.strip())
+        tabu_table.append([f"{colorWHITEonRED}{colorBOLD}{plot}{colorENDC}", f"{fname.stat().st_size / 1e-9:0.0f}GB"])
+
+    row0 = ['left', 'left']
+    print(tabulate(tabu_table, headers=['file name', 'size'], colalign=row0, tablefmt='pretty'))
