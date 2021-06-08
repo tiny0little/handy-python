@@ -17,6 +17,8 @@ plots_df = pd.DataFrame(columns=['year', 'mon', 'day', 'file_name'])
 parser = argparse.ArgumentParser(description="counting how many CHIA plots made per day")
 parser.add_argument("-f", "--files", help="show plot files or not (default: %(default)s)",
                     default=1, type=int, choices=[0, 1])
+parser.add_argument("-d", "--days", help="show number of last days (default: %(default)s)",
+                    default=3, type=int)
 args = parser.parse_args()
 
 #
@@ -37,6 +39,7 @@ with Halo(color='white'):
 
     dates_df = dates_df.drop_duplicates()
     dates_df = dates_df.sort_values(by=['year', 'mon', 'day'])
+    dates_df = dates_df.iloc[-args.days:, :]
 
 #
 #
