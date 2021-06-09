@@ -99,10 +99,11 @@ for index0, row0 in dates_df.iterrows():
             plot_time_in_sec = plot_finish_time - plot_start_time
             min0, sec0 = divmod(plot_time_in_sec, 60)
             hour0, min0 = divmod(min0, 60)
-            tabu_table.append([row1['file_name'], f"{hour0:02.0f}:{min0:02.0f}"])
+            tabu_table.append(
+                [row1['file_name'], f"{fname.stat().st_size * 9.31323e-10:0.1f}GiB", f"{hour0:02.0f}h{min0:02.0f}m"])
 
-        row0 = ['left', 'left']
-        print(tabulate(tabu_table, headers=['file name', ''], colalign=row0, tablefmt='pretty'))
+        row0 = ['left', 'left', 'left']
+        print(tabulate(tabu_table, colalign=row0, tablefmt='pretty'))
 
 if not args.files:
     row0 = ['left', 'left', 'left']
@@ -113,7 +114,8 @@ if len(small_plots) > 0:
     tabu_table = []
     for plot in small_plots:
         fname = pathlib.Path(plot.strip())
-        tabu_table.append([f"{colorWHITEonRED}{colorBOLD}{plot}{colorENDC}", f"{fname.stat().st_size / 1e-9:0.0f}GB"])
+        tabu_table.append(
+            [f"{colorWHITEonRED}{colorBOLD}{plot}{colorENDC}", f"{fname.stat().st_size * 9.31323e-10:0.1f}GiB"])
 
     row0 = ['left', 'left']
-    print(tabulate(tabu_table, headers=['file name', 'size'], colalign=row0, tablefmt='pretty'))
+    print(tabulate(tabu_table, headers=['plots with wrong file size', ''], colalign=row0, tablefmt='pretty'))
