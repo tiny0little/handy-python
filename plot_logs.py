@@ -24,10 +24,14 @@ def is_new_plotter(_log_file: str) -> bool:
 
 def get_time(_phase: int, _log_file: str, _start_line: int, _end_line: int) -> str:
     _result = ''
+    _output0 = ''
+    _sec0 = 0
     if is_new_plotter(_log_file):
         _output0 = subprocess.getoutput(
-            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Phase {_phase} took' | tail -1").\
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Phase {_phase} took' | tail -1"). \
             split("sec")
+        if len(_output0) > 1: _sec0 = int(float(_output0[0].split('took')[1].strip()))
+
     else:
         if _phase < 100:
             _search_str = f"Time for phase {_phase}"
@@ -36,30 +40,38 @@ def get_time(_phase: int, _log_file: str, _start_line: int, _end_line: int) -> s
         _output0 = subprocess.getoutput(
             f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_str}' | tail -1"). \
             split("seconds.")
+        if len(_output0) > 1: _sec0 = int(float(_output0[0].split("=")[1].strip()))
 
     if len(_output0) > 1:
-        _output0 = int(float(_output0[0].split("=")[1].strip()))
-        _min, _sec = divmod(_output0, 60)
+        _min, _sec = divmod(_sec0, 60)
         _hours, _min = divmod(_min, 60)
         _result = f"{_hours:02d}h{_min:02d}m"
+
     return _result
 
 
 # adds two times
-def get_time2(_str1: str, _str2: str, _log_file: str, _start_line: int, _end_line: int) -> str:
+def get_total_time(_log_file: str, _start_line: int, _end_line: int) -> str:
+    _result = ""
+    _sec0 = 0
     if is_new_plotter(_log_file):
-        _result = 'u'
+        # Total plot creation time was 27698.7 sec
+        _output0 = subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Total plot creation time was' |"
+            " tail -1").split("sec")
+        if len(_output0) > 1: _sec0 = int(float(_output0[0].split('was')[1].strip()))
     else:
         _output1 = subprocess.getoutput(
-            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str1}' | tail -1").split("seconds.")
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Total time' | tail -1").split(
+            "seconds.")
         _output2 = subprocess.getoutput(
-            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str2}' | tail -1").split("seconds.")
-        _result = ""
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Copy time' | tail -1").split(
+            "seconds.")
         if len(_output1) > 1 and len(_output2) > 1:
-            _output0 = int(float(_output1[0].split("=")[1].strip())) + int(float(_output2[0].split("=")[1].strip()))
-            _min, _sec = divmod(_output0, 60)
-            _hours, _min = divmod(_min, 60)
-            _result = f"{_hours:02d}h{_min:02d}m"
+            _sec0 = int(float(_output1[0].split("=")[1].strip())) + int(float(_output2[0].split("=")[1].strip()))
+    _min, _sec = divmod(_sec0, 60)
+    _hours, _min = divmod(_min, 60)
+    _result = f"{_hours:02d}h{_min:02d}m"
     return _result
 
 
@@ -67,11 +79,14 @@ def get_phase_progress(phase: int, _steps: int, _log_file, _start_line: int, _en
     _result = ''
     if is_new_plotter(_log_file):
         _output0 = int(subprocess.getoutput(
-            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '[[P{phase}]]' | wc -l"))
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'P{phase}' | wc -l"))
         if _output0 > 0:
+            if phase == 2: _output0 = int(_output0 * 0.5)
+            if phase == 3: _output0 = int(_output0 * 0.5)
             for _i in range(int(_output0)): _result += "#"
             for _i in range(_steps - int(_output0)): _result += "."
     else:
+        _search_text = '???'
         if phase == 1: _search_text = "Computing table"
         if phase == 2: _search_text = "Backpropagating on table"
         if phase == 3: _search_text = "Compressing tables"
@@ -148,10 +163,15 @@ def get_temp_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 
 def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Copied final file from'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split(" to ")[1].strip()
-        _output = _output.split("/plot-k")[0].strip()[1:] + "/"
+    if is_new_plotter(_log_file):
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Final Directory'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _output = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Copied final file from'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _output = subprocess.getoutput(f"{_str}").split(" to ")[1].strip()
+            _output = _output.split("/plot-k")[0].strip()[1:] + "/"
     return _output
 
 
@@ -205,7 +225,11 @@ with Halo(color='white'):
         # processing completed plots
         #
         if args.completed_plots:
-            output = subprocess.getoutput(f"grep -n 'Copy time' {log_file}").split("\n")
+            if is_new_plotter(log_file):
+                output = subprocess.getoutput(f"grep -n 'Total plot creation time was' {log_file}").split("\n")
+            else:
+                output = subprocess.getoutput(f"grep -n 'Copy time' {log_file}").split("\n")
+
             for line in output:
                 end_line0 = line.split(":")[0].strip()
                 if end_line0.isnumeric():
@@ -222,7 +246,7 @@ with Halo(color='white'):
                          get_time(3, log_file, start_line, end_line),
                          get_time(4, log_file, start_line, end_line),
                          get_time(101, log_file, start_line, end_line),
-                         get_time2("Total time", "Copy time", log_file, start_line, end_line)])
+                         get_total_time(log_file, start_line, end_line)])
 
                 start_line = end_line + 1
 
@@ -230,7 +254,10 @@ with Halo(color='white'):
         # processing currently running plot
         #
         # start_line
-        str0 = f"egrep -n 'Starting plotting progress into temporary' {log_file} | tail -1"
+        if is_new_plotter(log_file):
+            str0 = f"egrep -n 'Crafting plot' {log_file} | tail -1"
+        else:
+            str0 = f"egrep -n 'Starting plotting progress into temporary' {log_file} | tail -1"
         if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
             start_line = int(subprocess.getoutput(f"{str0}").split(":")[0].strip())
         else:
@@ -242,11 +269,16 @@ with Halo(color='white'):
 
         #
         # start_tine of current plot
-        str0 = f"awk 'NR >= {start_line}' {log_file} | egrep 'Starting phase 1/4: Forward Propagation' | tail -1"
-        if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
-            start_time = parse(subprocess.getoutput(f"{str0}").split("...")[1].strip())
+        start_time = datetime.now()
+        if is_new_plotter(log_file):
+            str0 = f"awk 'NR >= {start_line}' {log_file} | egrep 'Plot Name: plot-k32' | tail -1"
+            if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
+                tmp0 = subprocess.getoutput(f"{str0}").split('plot-')[1].split('-')[1:-1]
+                start_time = parse(f"{tmp0[0]}-{tmp0[1]}-{tmp0[2]} {tmp0[3]}:{tmp0[4]}")
         else:
-            start_time = datetime.now()
+            str0 = f"awk 'NR >= {start_line}' {log_file} | egrep 'Starting phase 1/4: Forward Propagation' | tail -1"
+            if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
+                start_time = parse(subprocess.getoutput(f"{str0}").split("...")[1].strip())
 
         running_time = relativedelta(datetime.now(), start_time)
 
@@ -265,8 +297,6 @@ with Halo(color='white'):
                                     get_time(4, log_file, start_line, end_line),
                                     f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
                                     ])
-
-# print()
 
 if len(final_completed_table) > 1 and args.completed_plots:
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
