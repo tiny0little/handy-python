@@ -17,82 +17,133 @@ final_completed_table = []
 final_running_table = []
 
 
-def get_time(_str: str, _log_file: str, _start_line: int, _end_line: int) -> str:
-    _output0 = subprocess.getoutput(
-        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str}' | tail -1").split("seconds.")
-    _output1 = ""
+def is_new_plotter(_log_file: str) -> bool:
+    _output0 = int(subprocess.getoutput(f"cat {_log_file} | egrep 'Multi-threaded pipelined Chia k32 plotter' | wc -l"))
+    return _output0 > 0
+
+
+def get_time(_phase: int, _log_file: str, _start_line: int, _end_line: int) -> str:
+    _result = ''
+    if is_new_plotter(_log_file):
+        _output0 = subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Phase {_phase} took' | tail -1").\
+            split("sec")
+    else:
+        if _phase < 100:
+            _search_str = f"Time for phase {_phase}"
+        else:
+            _search_str = "Copy time"
+        _output0 = subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_str}' | tail -1"). \
+            split("seconds.")
+
     if len(_output0) > 1:
         _output0 = int(float(_output0[0].split("=")[1].strip()))
         _min, _sec = divmod(_output0, 60)
         _hours, _min = divmod(_min, 60)
-        _output1 = f"{_hours:02d}h{_min:02d}m"
-    return _output1
+        _result = f"{_hours:02d}h{_min:02d}m"
+    return _result
 
 
 # adds two times
 def get_time2(_str1: str, _str2: str, _log_file: str, _start_line: int, _end_line: int) -> str:
-    _output1 = subprocess.getoutput(
-        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str1}' | tail -1").split("seconds.")
-    _output2 = subprocess.getoutput(
-        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str2}' | tail -1").split("seconds.")
-    _final_output = ""
-    if len(_output1) > 1 and len(_output2) > 1:
-        _output0 = int(float(_output1[0].split("=")[1].strip())) + int(float(_output2[0].split("=")[1].strip()))
-        _min, _sec = divmod(_output0, 60)
-        _hours, _min = divmod(_min, 60)
-        _final_output = f"{_hours:02d}h{_min:02d}m"
-    return _final_output
+    if is_new_plotter(_log_file):
+        _result = 'u'
+    else:
+        _output1 = subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str1}' | tail -1").split("seconds.")
+        _output2 = subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_str2}' | tail -1").split("seconds.")
+        _result = ""
+        if len(_output1) > 1 and len(_output2) > 1:
+            _output0 = int(float(_output1[0].split("=")[1].strip())) + int(float(_output2[0].split("=")[1].strip()))
+            _min, _sec = divmod(_output0, 60)
+            _hours, _min = divmod(_min, 60)
+            _result = f"{_hours:02d}h{_min:02d}m"
+    return _result
 
 
-def get_phase_progress(_search_text: str, _steps: int, _log_file, _start_line: int, _end_line: int) -> str:
-    _output0 = int(subprocess.getoutput(
-        f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_text}' | wc -l"))
-    _output1 = ""
-    if _output0 > 0:
-        for _i in range(int(_output0)): _output1 += "#"
-        for _i in range(_steps - int(_output0)): _output1 += "."
-    return _output1
+def get_phase_progress(phase: int, _steps: int, _log_file, _start_line: int, _end_line: int) -> str:
+    _result = ''
+    if is_new_plotter(_log_file):
+        _output0 = int(subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '[[P{phase}]]' | wc -l"))
+        if _output0 > 0:
+            for _i in range(int(_output0)): _result += "#"
+            for _i in range(_steps - int(_output0)): _result += "."
+    else:
+        if phase == 1: _search_text = "Computing table"
+        if phase == 2: _search_text = "Backpropagating on table"
+        if phase == 3: _search_text = "Compressing tables"
+        if phase == 4: _search_text = "Starting phase 4/4"
+        _output0 = int(subprocess.getoutput(
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '{_search_text}' | wc -l"))
+        if _output0 > 0:
+            for _i in range(int(_output0)): _result += "#"
+            for _i in range(_steps - int(_output0)): _result += "."
+    return _result
 
 
 def get_plot_size(_log_file: str, _start_line: int, _end_line: int) -> str:
-    _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Plot size is'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split(":")[1].strip()
-    return _output
+    _result = '??'
+    if is_new_plotter(_log_file):
+        _result = '32'
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Plot size is'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+    return _result
 
 
 def get_buckets(_log_file: str, _start_line: int, _end_line: int) -> str:
-    _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ buckets'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split("Using")[1].split("buckets")[0].strip()
-    return _output
+    _result = '??'
+    if is_new_plotter(_log_file):
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Number of Buckets'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split("(")[1].split(")")[0].strip()
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ buckets'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split("Using")[1].split("buckets")[0].strip()
+    return _result
 
 
 def get_threads(_log_file: str, _start_line: int, _end_line: int) -> str:
-    _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ threads'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split("Using")[1].split("threads")[0].strip()
-    return _output
+    _result = '??'
+    if is_new_plotter(_log_file):
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Number of Threads'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Using [0-9]+ threads'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split("Using")[1].split("threads")[0].strip()
+    return _result
 
 
 def get_buffer_size(_log_file: str, _start_line: int, _end_line: int) -> str:
-    _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Buffer size is: [0-9]+MiB'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split("is:")[1].split("MiB")[0].strip()
-    return _output
+    _result = '-'
+    if is_new_plotter(_log_file):
+        pass
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Buffer size is: [0-9]+MiB'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split("is:")[1].split("MiB")[0].strip()
+    return _result
 
 
 def get_temp_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
-    _output = "??"
-    _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'progress into temporary dirs'"
-    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
-        _output = subprocess.getoutput(f"{_str}").split(":")[1].strip()
-        _output = _output.split("and")[0].strip() + "/"
-    return _output
+    _result = '??'
+    if is_new_plotter(_log_file):
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Working Directory' | head -1"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'progress into temporary dirs'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+            _result = _result.split("and")[0].strip() + "/"
+    return _result
 
 
 def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
@@ -166,11 +217,11 @@ with Halo(color='white'):
                          get_buckets(log_file, start_line, end_line),
                          get_buffer_size(log_file, start_line, end_line),
                          get_threads(log_file, start_line, end_line),
-                         get_time('Time for phase 1', log_file, start_line, end_line),
-                         get_time('Time for phase 2', log_file, start_line, end_line),
-                         get_time('Time for phase 3', log_file, start_line, end_line),
-                         get_time('Time for phase 4', log_file, start_line, end_line),
-                         get_time("Copy time", log_file, start_line, end_line),
+                         get_time(1, log_file, start_line, end_line),
+                         get_time(2, log_file, start_line, end_line),
+                         get_time(3, log_file, start_line, end_line),
+                         get_time(4, log_file, start_line, end_line),
+                         get_time(101, log_file, start_line, end_line),
                          get_time2("Total time", "Copy time", log_file, start_line, end_line)])
 
                 start_line = end_line + 1
@@ -204,14 +255,14 @@ with Halo(color='white'):
                                     get_buckets(log_file, start_line, end_line),
                                     get_buffer_size(log_file, start_line, end_line),
                                     get_threads(log_file, start_line, end_line),
-                                    get_phase_progress("Computing table", 7, log_file, start_line, end_line),
-                                    get_time('Time for phase 1', log_file, start_line, end_line),
-                                    get_phase_progress("Backpropagating on table", 6, log_file, start_line, end_line),
-                                    get_time('Time for phase 2', log_file, start_line, end_line),
-                                    get_phase_progress("Compressing tables", 6, log_file, start_line, end_line),
-                                    get_time('Time for phase 3', log_file, start_line, end_line),
-                                    get_phase_progress("Starting phase 4/4", 1, log_file, start_line, end_line),
-                                    get_time('Time for phase 4', log_file, start_line, end_line),
+                                    get_phase_progress(1, 7, log_file, start_line, end_line),
+                                    get_time(1, log_file, start_line, end_line),
+                                    get_phase_progress(2, 6, log_file, start_line, end_line),
+                                    get_time(2, log_file, start_line, end_line),
+                                    get_phase_progress(3, 6, log_file, start_line, end_line),
+                                    get_time(3, log_file, start_line, end_line),
+                                    get_phase_progress(4, 1, log_file, start_line, end_line),
+                                    get_time(4, log_file, start_line, end_line),
                                     f"{running_time.days * 24 + running_time.hours:02d}h{running_time.minutes:02d}m"
                                     ])
 
