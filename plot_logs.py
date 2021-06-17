@@ -83,6 +83,7 @@ def get_phase_progress(phase: int, _steps: int, _log_file, _start_line: int, _en
         if _output0 > 0:
             if phase == 2: _output0 = int(_output0 * 0.5)
             if phase == 3: _output0 = int(_output0 * 0.5)
+            if phase == 4: _output0 = int(_output0 * 0.25)
             for _i in range(int(_output0)): _result += "#"
             for _i in range(_steps - int(_output0)): _result += "."
     else:
@@ -209,7 +210,7 @@ else:
 
 final_completed_table.append(
     [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "buckets",
-     "buffer", "threads", "p1 time", "p2 time", "p3 time", "p4 time", "cp time", "total"])
+     "buffer", "threads", "p1 time", "p2 time", "p3 time", "p4 time", "total"])
 final_running_table.append(
     [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "threads", "p1",
      "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
@@ -245,7 +246,6 @@ with Halo(color='white'):
                          get_time(2, log_file, start_line, end_line),
                          get_time(3, log_file, start_line, end_line),
                          get_time(4, log_file, start_line, end_line),
-                         get_time(101, log_file, start_line, end_line),
                          get_total_time(log_file, start_line, end_line)])
 
                 start_line = end_line + 1
@@ -302,7 +302,7 @@ if len(final_completed_table) > 1 and args.completed_plots:
     if args.sort[0] == 'p': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_completed_table[1:] = sorted(final_completed_table[1:], key=itemgetter(-1))
     tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
-                 'center', 'center']
+                 'center']
     print(tabulate(final_completed_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
 
 if len(final_running_table) > 1:

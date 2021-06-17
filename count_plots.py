@@ -30,10 +30,12 @@ parser.add_argument("-k", type=int, help="plot size (32, 33, ...)")
 args = parser.parse_args()
 
 with Halo(color='white'):
-    netspace0 = subprocess.getoutput("cd ~/src/chia-blockchain/ && . ./activate && chia netspace "
-                                     " | egrep 'The network has an estimated'")
-    netspace0 = netspace0.split("The network has an estimated")[1].split("EiB")[0].strip()
-    netspace = float(netspace0)  # in EiB
+    netspace = 0
+    str0 = "cd ~/src/chia-blockchain/ && . ./activate && chia netspace | egrep 'The network has an estimated'"
+    if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
+        netspace0 = subprocess.getoutput(str0)
+        netspace0 = netspace0.split("The network has an estimated")[1].split("EiB")[0].strip()
+        netspace = float(netspace0)  # in EiB
 
     #
     if args.k is None:
@@ -50,18 +52,22 @@ with Halo(color='white'):
     for plot in plots:
         size += os.path.getsize(plot)
 
-    #
     # convert bytes to TiB
-
     size = size / 1.099511628e+12
-    possible_reward = (4608 * 2 * size / (netspace * 1.049e+6))
-    days_to_win = f"{int(2 / possible_reward)}"
+    if netspace > 0:
+        possible_reward = (4608 * 2 * size / (netspace * 1.049e+6))
+        days_to_win = f"{int(2 / possible_reward)}"
+        my_netspace = size / (netspace * 1.049e+6)
+    else:
+        possible_reward = 0
+        days_to_win = 0
+        my_netspace = 0
 
     if args.k is None:
         finalTable.append(["total plots count", f"{colorWHITEonGREEN}{colorBOLD}{len(plots)}{colorENDC}"])
         finalTable.append(["total plots  size", f"{colorWHITEonPURPLE}{colorBOLD}{size:.2f}{colorENDC} TiB"])
         finalTable.append(["total XCH netspace", f"{netspace:.2f} EiB"])
-        finalTable.append(["my netspace %", f"{(size / (netspace * 1.049e+6)):.10f}%"])
+        finalTable.append(["my netspace %", f"{my_netspace:.10f}%"])
         finalTable.append(["possible reward", f"{possible_reward:.5f}xch per day"])
         finalTable.append(["days to win 2xch", days_to_win])
     else:
@@ -69,7 +75,5 @@ with Halo(color='white'):
         finalTable.append([f"plot-k{args.k}  size", f"{size:.2f} TB"])
 
 #
-#
-
 row0 = ['right', 'left']
 print(tabulate(finalTable, colalign=row0, tablefmt="pretty"))
