@@ -11,6 +11,7 @@ import argparse
 from operator import itemgetter
 from halo import Halo
 from pathlib import Path
+from psutil import virtual_memory
 
 log_location = str(Path.home()) + "/.chia/mainnet/plotter"
 final_completed_table = []
@@ -176,6 +177,15 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     return _output
 
 
+def get_memory_usage(_log_file: str):
+    _str = f"ps axv | grep chia | egrep 'plot|creat' | grep {os.path.basename(_log_file)[:-4]} " \
+           f"| grep -v tee | awk '{{print $9}}'"
+    _result = '-'
+    if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+        _result = float(subprocess.getoutput(f"{_str} | head -1")) * virtual_memory().total / (100 * 1e+9)
+    return f"{_result:00.01f}"
+
+
 #
 #
 parser = argparse.ArgumentParser(description="plot logs analyzer")
@@ -212,10 +222,11 @@ final_completed_table.append(
     [f"{colorWHITEonGREEN}{colorBOLD}COMPLETED PLOTS{colorENDC}", "temp", "final", "k", "buckets",
      "buffer", "threads", "p1 time", "p2 time", "p3 time", "p4 time", "total"])
 final_running_table.append(
-    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "k", "buckets", "buffer", "threads", "p1",
-     "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
+    [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "mem", "k", "buckets", "buffer",
+     "threads", "p1", "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
 log_files = glob.glob(f"{log_location}/*{args.log_file}*log")
 
+total_memory_usage = 0
 with Halo(color='white'):
     for log_file in log_files:
 
@@ -282,7 +293,10 @@ with Halo(color='white'):
 
         running_time = relativedelta(datetime.now(), start_time)
 
+        _memory_usage = get_memory_usage(log_file)
+        total_memory_usage += float(_memory_usage)
         final_running_table.append([os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
+                                    _memory_usage,
                                     get_plot_size(log_file, start_line, end_line),
                                     get_buckets(log_file, start_line, end_line),
                                     get_buffer_size(log_file, start_line, end_line),
@@ -308,6 +322,8 @@ if len(final_completed_table) > 1 and args.completed_plots:
 if len(final_running_table) > 1:
     if args.sort[0] == 'p': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(1))
     if args.sort[0] == 't': final_running_table[1:] = sorted(final_running_table[1:], key=itemgetter(-1))
-    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center', 'center',
-                 'center', 'center', 'center', 'center']
+    tab_align = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'center', 'center', 'center', 'center',
+                 'center', 'center', 'center', 'center', 'center']
     print(tabulate(final_running_table, colalign=tab_align, headers="firstrow", tablefmt=args.tabfmt))
+
+print(f"total memory: {total_memory_usage:00.01f}GB")
