@@ -78,7 +78,6 @@ if args.verbose: print(f"found following disks: {disks}")
 
 #
 # Gather all disks SMART info and store it into tmp files
-#
 def gather_smart_data(_disk, _temp_file):
     subprocess.getoutput(f"sudo smartctl -a /dev/{_disk} > {_temp_file}")
     # let's see if we have anything, if nothing, let's try 1st partition -> works for USB flash drives
@@ -88,7 +87,6 @@ def gather_smart_data(_disk, _temp_file):
 
 #
 # Launching all smartctl in parallel as threads
-#
 for disk in disks:
     tempFiles[disk] = tempFilePrefix + disk + ".tmp"
     th[disk] = threading.Thread(target=gather_smart_data, args=(disk, tempFiles[disk],), daemon=True)
@@ -96,7 +94,6 @@ for disk in disks:
 
 #
 # Waiting for all threads to complete
-#
 with Halo(color='white'):
     for disk in disks:
         th[disk].join()
@@ -111,8 +108,7 @@ for disk in disks:
     if "rpm" in lines[0]: type0 = f"{colorWHITEonPURPLE}HDD{colorENDC}"
 
     if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
-        # TODO: commented out. why did I do that???
-        # disks.pop()
+        disks.pop()
         continue
 
     diskType.append(type0)
@@ -328,7 +324,7 @@ elif used > 70:
 else:
     color0 = colorGREEN
 
-finalTable.append(["SPACE", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
+finalTable.append(["TOTAL CAPACITY", f"{colorYELLOW}{colorBOLD}{totalCapacity:.1f} TB{colorENDC}"])
 finalTable.append(["FREE", f"{colorYELLOW}{colorBOLD}{totalFreeSpace:.1f} TB{colorENDC}"])
 finalTable.append(["USED", f"{color0}{colorBOLD}{tmp}{colorENDC}"])
 
