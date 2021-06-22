@@ -79,7 +79,7 @@ def get_phase_progress(phase: int, _steps: int, _log_file, _start_line: int, _en
     _result = ''
     if is_new_plotter(_log_file):
         _output0 = int(subprocess.getoutput(
-            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'P{phase}' | wc -l"))
+            f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep '\[P{phase}' | wc -l"))
         if _output0 > 0:
             if phase == 2: _output0 = int(_output0 * 0.5)
             if phase == 3: _output0 = int(_output0 * 0.5)

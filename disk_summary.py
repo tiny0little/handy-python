@@ -100,15 +100,16 @@ with Halo(color='white'):
 
 #
 # go disk by disk and build the final table
-#
-for disk in disks:
+disk_index = 0
+while disk_index < len(disks):
+    disk = disks[disk_index]
 
     lines = subprocess.getoutput(f"cat {tempFiles[disk]} | egrep Rotation").split("\n")
     type0 = f"{colorWHITEonGREEN}SSD{colorENDC}"
     if "rpm" in lines[0]: type0 = f"{colorWHITEonPURPLE}HDD{colorENDC}"
 
     if (args.device_type not in type0.lower()) and (args.device_type != 'all'):
-        disks.pop()
+        disks.pop(disk_index)
         continue
 
     diskType.append(type0)
@@ -262,8 +263,8 @@ for disk in disks:
     if len(tmp0) > 1: errors = errors + f"{colorRED}{colorBOLD}self-test failure{colorENDC}\n"
     diskErrors.append(errors)
 
+    disk_index += 1
 
-#
 #
 #
 
