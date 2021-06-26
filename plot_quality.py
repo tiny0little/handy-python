@@ -37,17 +37,22 @@ if args.scan:
 
 if args.update is not None:
     for i in range(1, args.update + 1):
-        cur.execute(f"SELECT name FROM plots WHERE quality<0 LIMIT 1")
-        current_plot_name = cur.fetchone()[0]
-        with Halo(text=f"processing plot {i} - {current_plot_name}", color='white'):
-            str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check -g {current_plot_name} 2>&1 " \
-                   f" | egrep 'Proofs'"
-            out0 = subprocess.getoutput(f"{str0}").split('Proofs')[1].strip().split('/')[0].strip()
-            if out0.isnumeric():
-                cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
-                con.commit()
-            else:
-                print('ERROR: output of `chia plots check` can`t be processed')
+        sql0 = "SELECT name FROM plots WHERE quality<0 LIMIT 1"
+        cur.execute(sql0)
+        if cur.fetchone() is not None:
+            cur.execute(sql0)
+            current_plot_name = cur.fetchone()[0]
+            with Halo(text=f"processing plot {i} - {current_plot_name}", color='white'):
+                str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check -g {current_plot_name} 2>&1 " \
+                       f" | egrep 'Proofs'"
+                out0 = subprocess.getoutput(f"{str0}").split('Proofs')[1].strip().split('/')[0].strip()
+                if out0.isnumeric():
+                    cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
+                    con.commit()
+                else:
+                    print('ERROR: output of `chia plots check` can`t be processed')
+        else:
+            print('WARNING: no more plots to process')
 
     print('---')
 
@@ -66,6 +71,8 @@ cur.execute(f"SELECT count(*) FROM plots")
 print(f"total number of plots in the database:  {cur.fetchone()[0]}")
 cur.execute(f"SELECT count(*) FROM plots WHERE quality>0")
 print(f"number of plots with processed quality: {cur.fetchone()[0]}")
+cur.execute(f"SELECT count(*) FROM plots WHERE quality<0")
+print(f"number of plots needs to be processed:  {cur.fetchone()[0]}")
 
 con.commit()
 con.close()
