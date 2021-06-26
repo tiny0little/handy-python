@@ -59,7 +59,7 @@ if args.update is not None:
 #
 
 if args.quality is not None:
-    cur.execute(f"SELECT quality, name FROM plots WHERE (quality>0) and (quality<{args.quality}) ORDER BY quality ASC")
+    cur.execute(f"SELECT quality, name FROM plots WHERE (quality>0) and (quality<={args.quality}) ORDER BY quality ASC")
     for row in cur.fetchall():
         print(f"{row[0]} {row[1]}")
 
