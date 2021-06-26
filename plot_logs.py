@@ -180,7 +180,7 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
 def get_memory_usage(_log_file: str):
     _str = f"ps axv | grep chia | egrep 'plot|creat' | grep {os.path.basename(_log_file)[:-4]} " \
            f"| grep -v tee | awk '{{print $9}}'"
-    _result = '-'
+    _result = 0
     if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
         _result = float(subprocess.getoutput(f"{_str} | head -1")) * virtual_memory().total / (100 * 1e+9)
     return f"{_result:00.01f}"
