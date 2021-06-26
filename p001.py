@@ -5,10 +5,13 @@ from typing import List
 
 class Solution:
     def subsets(self, nums: List[int]) -> List[List[int]]:
-        for i in range(len(nums)):
-            for j in range(i + 1):
-                print(nums[j], end=' ')
-            print()
+        n = len(nums)
+        output = [[]]
+
+        for num in nums:
+            output += [curr + [num] for curr in output]
+
+        return output
 
 
 sol = Solution()

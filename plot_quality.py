@@ -1,12 +1,14 @@
 #!/usr/bin/python3.8
 
 import sqlite3
+from contextlib import closing
 import argparse
 import subprocess
 import pathlib
 from halo import Halo
 
 plot_location = '/media'
+db_fname = '/home/user/src/handy-tools/plot_quality.db'
 
 #
 
@@ -20,59 +22,57 @@ args = parser.parse_args()
 
 #
 
-con = sqlite3.connect('plot_quality.db')
-cur = con.cursor()
-cur.execute('CREATE TABLE if not exists plots (name TEXT, quality INTEGER, UNIQUE(name))')
+with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+    cur.execute('CREATE TABLE if not exists plots (name TEXT, quality INTEGER, UNIQUE(name))')
 
 if args.scan:
     with Halo(text='scanning', color='white'):
         plots0 = subprocess.getoutput(
             f"find {args.dir} -path '*CHIA*' -name 'plot*plot' -exec ls {{}} \; 2> /dev/null").split("\n")
 
-        for plot in plots0:
-            fname = pathlib.Path(plot.strip())
-            cur.execute(f"INSERT OR IGNORE INTO plots VALUES('{fname.name}', -1)")
+        with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+            for plot in plots0:
+                fname = pathlib.Path(plot.strip())
+                cur.execute(f"INSERT OR IGNORE INTO plots VALUES('{fname.name}', -1)")
 
 #
 
 if args.update is not None:
     for i in range(1, args.update + 1):
         sql0 = "SELECT name FROM plots WHERE quality<0 LIMIT 1"
-        cur.execute(sql0)
-        if cur.fetchone() is not None:
+        with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
             cur.execute(sql0)
-            current_plot_name = cur.fetchone()[0]
-            with Halo(text=f"processing plot {i} - {current_plot_name}", color='white'):
-                str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check -g {current_plot_name} 2>&1 " \
-                       f" | egrep 'Proofs'"
-                out0 = subprocess.getoutput(f"{str0}").split('Proofs')[1].strip().split('/')[0].strip()
-                if out0.isnumeric():
-                    cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
-                    con.commit()
-                else:
-                    print('ERROR: output of `chia plots check` can`t be processed')
-        else:
-            print('WARNING: no more plots to process')
-
-    print('---')
+            if cur.fetchone() is not None:
+                cur.execute(sql0)
+                current_plot_name = cur.fetchone()[0]
+                with Halo(text=f"processing plot {i} - {current_plot_name}", color='white'):
+                    str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check -g {current_plot_name} 2>&1 " \
+                           f" | egrep 'Proofs'"
+                    out0 = subprocess.getoutput(f"{str0}").split('Proofs')[1].strip().split('/')[0].strip()
+                    if out0.isnumeric():
+                        cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
+                    else:
+                        print('ERROR: output of `chia plots check` can`t be processed')
+            else:
+                print('WARNING: no more plots to process')
 
 #
 
 if args.quality is not None:
-    cur.execute(f"SELECT quality, name FROM plots WHERE (quality>0) and (quality<={args.quality}) ORDER BY quality ASC")
-    for row in cur.fetchall():
-        print(f"{row[0]} {row[1]}")
+    with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+        cur.execute(
+            f"SELECT quality, name FROM plots WHERE (quality>0) and (quality<={args.quality}) ORDER BY quality ASC")
+        for row in cur.fetchall():
+            print(f"{row[0]} {row[1]}")
 
     print('---')
 
 #
 
-cur.execute(f"SELECT count(*) FROM plots")
-print(f"total number of plots in the database:  {cur.fetchone()[0]}")
-cur.execute(f"SELECT count(*) FROM plots WHERE quality>0")
-print(f"number of plots with processed quality: {cur.fetchone()[0]}")
-cur.execute(f"SELECT count(*) FROM plots WHERE quality<0")
-print(f"number of plots needs to be processed:  {cur.fetchone()[0]}")
-
-con.commit()
-con.close()
+with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+    cur.execute(f"SELECT count(*) FROM plots")
+    print(f"total number of plots in the database:  {cur.fetchone()[0]}")
+    cur.execute(f"SELECT count(*) FROM plots WHERE quality>0")
+    print(f"number of plots with processed quality: {cur.fetchone()[0]}")
+    cur.execute(f"SELECT count(*) FROM plots WHERE quality<0")
+    print(f"number of plots needs to be processed:  {cur.fetchone()[0]}")
