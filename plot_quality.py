@@ -18,6 +18,8 @@ parser.add_argument("-u", "--update", type=int, help="update quality of new plot
                                                      " specify number of plots to process")
 parser.add_argument("-q", "--quality", type=int, help="show plots with specified or less quality")
 parser.add_argument("-d", "--dir", default=f"{plot_location}", help=f"root directory of plots (default: %(default)s)")
+parser.add_argument("-r", "--remove", help="remove plot from the database by provided pattern")
+
 args = parser.parse_args()
 
 #
@@ -66,6 +68,12 @@ if args.quality is not None:
             print(f"{row[0]} {row[1]}")
 
     print('---')
+
+#
+
+if args.remove is not None:
+    with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+        cur.execute(f"DELETE FROM plots WHERE name LIKE '%{args.remove}%'")
 
 #
 
