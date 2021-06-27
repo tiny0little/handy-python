@@ -8,6 +8,7 @@ import pathlib
 from halo import Halo
 
 plot_location = '/media'
+tmp_file = '/tmp/plot_quality.tmp'
 db_fname = '/home/user/src/handy-tools/plot_quality.db'
 
 #
@@ -30,17 +31,19 @@ with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cu
 if args.scan:
     with Halo(text='scanning', color='white'):
         plots0 = subprocess.getoutput(
-            f"find {args.dir} -path '*CHIA*' -name 'plot*plot' -exec ls {{}} \; 2> /dev/null").split("\n")
+            f"find {args.dir} -path '*CHIA*' -name 'plot*plot' -size +99G -exec ls {{}} \; 2> /dev/null").split("\n")
 
         with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
             for plot in plots0:
                 fname = pathlib.Path(plot.strip())
-                cur.execute(f"INSERT OR IGNORE INTO plots VALUES('{fname.name}', -1)")
+                if len(fname.name) > 77: cur.execute(f"INSERT OR IGNORE INTO plots VALUES('{fname.name}', -1)")
 
 #
 
 if args.update is not None:
+    print_warning = False
     for i in range(1, args.update + 1):
+        print_error = False
         sql0 = "SELECT name FROM plots WHERE quality<0 LIMIT 1"
         with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
             cur.execute(sql0)
@@ -48,15 +51,23 @@ if args.update is not None:
                 cur.execute(sql0)
                 current_plot_name = cur.fetchone()[0]
                 with Halo(text=f"processing plot {i} - {current_plot_name}", color='white'):
-                    str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check -g {current_plot_name} 2>&1 " \
-                           f" | egrep 'Proofs'"
-                    out0 = subprocess.getoutput(f"{str0}").split('Proofs')[1].strip().split('/')[0].strip()
-                    if out0.isnumeric():
-                        cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
+                    str0 = f"cd ~/src/chia-blockchain/ && . ./activate && chia plots check " \
+                           f"-g {current_plot_name} 2>&1 | egrep 'Proofs' > {tmp_file}"
+                    subprocess.getoutput(f"{str0}")
+                    out0 = subprocess.getoutput(f"cat {tmp_file} | egrep Proofs | wc -l")
+                    if int(out0) > 0:
+                        out0 = subprocess.getoutput(f"cat {tmp_file}").split('Proofs')[1].strip().split('/')[0].strip()
+                        if out0.isnumeric():
+                            cur.execute(f"UPDATE plots SET quality={out0} WHERE name='{current_plot_name}'")
+                        else:
+                            print_error = True
                     else:
-                        print('ERROR: output of `chia plots check` can`t be processed')
+                        print_error = True
+                    if print_error: print('   ERROR: output of `chia plots check` can`t be processed')
+                    subprocess.getoutput(f"rm {tmp_file}")
             else:
-                print('WARNING: no more plots to process')
+                print_warning = True
+    if print_warning: print('   WARNING: no more plots to process')
 
 #
 
