@@ -63,11 +63,11 @@ if args.update is not None:
                             print_error = True
                     else:
                         print_error = True
-                    if print_error: print('   ERROR: output of `chia plots check` can`t be processed')
+                    if print_error: print(' ERROR: output of `chia plots check` can`t be processed')
                     subprocess.getoutput(f"rm {tmp_file}")
             else:
                 print_warning = True
-    if print_warning: print('   WARNING: no more plots to process')
+    if print_warning: print(' WARNING: no more plots to process')
 
 #
 

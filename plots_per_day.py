@@ -34,6 +34,7 @@ parser.add_argument("-f", "--files", help="show plot files or not (default: %(de
                     default=1, type=int, choices=[0, 1])
 parser.add_argument("-d", "--days", help="show number of last days (default: %(default)s)",
                     default=3, type=int)
+parser.add_argument("-rm", "--remove", help="remove zero size plots", action="store_true")
 args = parser.parse_args()
 
 #
@@ -108,6 +109,9 @@ for index0, row0 in dates_df.iterrows():
 if not args.files:
     row0 = ['left', 'left', 'left']
     print(tabulate(tabu_table, headers=['date', 'plots', 'size'], colalign=row0, tablefmt='pretty'))
+
+if args.remove:
+    subprocess.getoutput("find /media/ -path '*CHIA*' -name 'plot*plot' -empty -delete")
 
 # plots with errors
 if len(small_plots) > 0:
