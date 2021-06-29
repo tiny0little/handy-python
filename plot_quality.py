@@ -18,6 +18,8 @@ parser.add_argument("-s", "--scan", help="scan for new plots and update the data
 parser.add_argument("-u", "--update", type=int, help="update quality of new plots in the database."
                                                      " specify number of plots to process")
 parser.add_argument("-q", "--quality", type=int, help="show plots with specified or less quality")
+parser.add_argument("-t", "--top", type=int, help="show top N quality plots")
+parser.add_argument("-p", "--plot", type=str, help="show plots by pattern")
 parser.add_argument("-d", "--dir", default=f"{plot_location}", help=f"root directory of plots (default: %(default)s)")
 parser.add_argument("-r", "--remove", help="remove plot from the database by provided pattern")
 
@@ -75,6 +77,28 @@ if args.quality is not None:
     with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
         cur.execute(
             f"SELECT quality, name FROM plots WHERE (quality>0) and (quality<={args.quality}) ORDER BY quality ASC")
+        for row in cur.fetchall():
+            print(f"{row[0]} {row[1]}")
+
+    print('---')
+
+#
+
+if args.top is not None:
+    with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+        cur.execute(
+            f"SELECT quality, name FROM plots ORDER BY quality DESC LIMIT {args.top}")
+        for row in cur.fetchall():
+            print(f"{row[0]} {row[1]}")
+
+    print('---')
+
+#
+
+if args.plot is not None:
+    with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+        cur.execute(
+            f"SELECT quality, name FROM plots WHERE name LIKE '%{args.plot}%' ORDER BY quality DESC LIMIT 25")
         for row in cur.fetchall():
             print(f"{row[0]} {row[1]}")
 
