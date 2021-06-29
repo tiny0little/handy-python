@@ -191,10 +191,10 @@ def get_memory_usage(_log_file: str):
 parser = argparse.ArgumentParser(description="plot logs analyzer")
 parser.add_argument("-d", "--dir", default=f"{log_location}", help=f"location of plot logs (default: %(default)s)")
 parser.add_argument("-l", "--log_file", default="*", help=f"log file name pattern (default: %(default)s)")
-parser.add_argument("-cp", "--completed_plots", action="store_true", help="show completed plots")
+parser.add_argument("-c", "--completed_plots", action="store_true", help="show completed plots")
 parser.add_argument("-s", "--sort", choices=['plot', 'p', 'time', 't'], nargs='?', default='time', const='time',
                     help="which column used for sorting the table? (default: %(default)s)")
-parser.add_argument("-nc", "--nocolor", help="do not use colors", action="store_true")
+parser.add_argument("-n", "--nocolor", help="do not use colors", action="store_true")
 parser.add_argument("-t", "--tabfmt",
                     choices=["plain", "simple", "github", "grid", "fancy_grid", "pipe", "orgtbl", "presto",
                              "pretty", "psql", "rst", "tsv"
