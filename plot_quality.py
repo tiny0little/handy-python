@@ -15,9 +15,8 @@ db_fname = '/home/user/src/handy-tools/plot_quality.db'
 
 parser = argparse.ArgumentParser(description="CHIA plots quality manager")
 parser.add_argument("-s", "--scan", help="scan for new plots and update the database", action="store_true")
-parser.add_argument("-u", "--update", default=0, type=int, const=0, nargs='?',
-                    help="update quality of new plots in the database."
-                         " specify the number of plots to process")
+parser.add_argument("-u", "--update", type=int, help="update quality of new plots in the database."
+                                                     " specify the number of plots to process")
 parser.add_argument("-q", "--quality", type=int, help="show plots with specified or less quality")
 parser.add_argument("-t", "--top", type=int, help="show top N quality plots")
 parser.add_argument("-p", "--plot", type=str, help="show plots by pattern")
