@@ -2,6 +2,7 @@
 
 """
 1913. Maximum Product Difference Between Two Pairs
+247th LeetCode Weekly Contest
 https://leetcode.com/contest/weekly-contest-247/problems/maximum-product-difference-between-two-pairs/
 
 """
