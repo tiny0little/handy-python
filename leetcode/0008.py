@@ -3,6 +3,7 @@
 """
 8 String to Integer (atoi)
 Runtime: 36 ms, faster than 60.39% of Python3 online submissions for String to Integer (atoi).
+Memory Usage: 14.1 MB, less than 80.23% of Python3 online submissions for String to Integer (atoi).
 """
 
 
