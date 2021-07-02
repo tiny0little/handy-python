@@ -16,26 +16,35 @@ class Solution:
         m = len(grid)
         n = len(grid[0])
         result = [[0 for col in range(n)] for row in range(m)]
+        # result = grid.copy()
 
-        m_delta = 0
-        n_delta = 0
+        while k > 0:
 
-        while True:
+            m_delta = 0
+            n_delta = 0
+            while True:
 
-            for i in range(n_delta, n - n_delta):
-                if i == n_delta:
-                    result[m_delta][i] = grid[m_delta][i + 1]
-                    result[m - m_delta - 1][i] = grid[m - m_delta - 2][i]
-                elif i == n - n_delta - 1:
-                    result[m_delta][i] = grid[m_delta + 1][i]
-                    result[m - m_delta - 1][i] = grid[m - m_delta - 1][i - 1]
-                else:
-                    result[m_delta][i] = grid[m_delta][i + 1]
-                    result[m - m_delta - 1][i] = grid[m - m_delta - 1][i - 1]
+                for i in range(n_delta, n - n_delta):
+                    if i == n_delta:
+                        result[m_delta][i] = grid[m_delta][i + 1]
+                        result[m - m_delta - 1][i] = grid[m - m_delta - 2][i]
+                    elif i == n - n_delta - 1:
+                        result[m_delta][i] = grid[m_delta + 1][i]
+                        result[m - m_delta - 1][i] = grid[m - m_delta - 1][i - 1]
+                    else:
+                        result[m_delta][i] = grid[m_delta][i + 1]
+                        result[m - m_delta - 1][i] = grid[m - m_delta - 1][i - 1]
 
-            for i in range(1 + m_delta, m - m_delta - 1):
-                result[i][n_delta] = grid[i - 1][n_delta]
-                result[i][n - n_delta - 1] = grid[i + 1][n - n_delta - 1]
+                for i in range(1 + m_delta, m - m_delta - 1):
+                    result[i][n_delta] = grid[i - 1][n_delta]
+                    result[i][n - n_delta - 1] = grid[i + 1][n - n_delta - 1]
+
+                if ((len(grid) - 2 * m_delta) <= 2) and ((len(grid[0]) - 2 * n_delta) <= 2): break
+                if (len(grid) - 2 * m_delta) > 2: m_delta += 1
+                if (len(grid[0]) - 2 * n_delta) > 2: n_delta += 1
+
+            grid = result[:]
+            k -= 1
 
         return result
 
@@ -43,4 +52,4 @@ class Solution:
 #
 
 sol = Solution()
-print(sol.rotateGrid(grid=[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], k=2))
+print(sol.rotateGrid(grid=[[40, 10], [30, 20]], k=2))

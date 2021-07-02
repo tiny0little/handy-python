@@ -15,6 +15,7 @@ db_fname = '/home/user/src/handy-tools/plot_quality.db'
 
 parser = argparse.ArgumentParser(description="CHIA plots quality manager")
 parser.add_argument("-s", "--scan", help="scan for new plots and update the database", action="store_true")
+parser.add_argument("-i", "--integrity", help="validate integrity of the database", action="store_true")
 parser.add_argument("-u", "--update", type=int, help="update quality of new plots in the database."
                                                      " specify the number of plots to process")
 parser.add_argument("-q", "--quality", type=int, help="show plots with specified or less quality")
@@ -39,6 +40,21 @@ if args.scan:
             for plot in plots0:
                 fname = pathlib.Path(plot.strip())
                 if len(fname.name) > 77: cur.execute(f"INSERT OR IGNORE INTO plots VALUES('{fname.name}', -1)")
+
+#
+
+if args.integrity:
+    with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
+        cur.execute(
+            f"SELECT name FROM plots")
+        plots = cur.fetchall()
+
+    for fname in plots:
+        with Halo(text=f"processing {fname[0]}", color='white'):
+            str0 = f"find {args.dir} -path '*CHIA*' -name '{fname[0]}' -size +99G -exec ls {{}} \; 2> /dev/null | wc -l"
+            if subprocess.getoutput(str0) != '1':
+                print()
+                print(f"{fname[0]} does not exist")
 
 #
 
@@ -121,7 +137,5 @@ if args.remove is not None:
 with closing(sqlite3.connect(db_fname)) as con, con, closing(con.cursor()) as cur:
     cur.execute(f"SELECT count(*) FROM plots")
     print(f"total number of plots in the database:  {cur.fetchone()[0]}")
-    cur.execute(f"SELECT count(*) FROM plots WHERE quality>0")
-    print(f"number of plots with processed quality: {cur.fetchone()[0]}")
     cur.execute(f"SELECT count(*) FROM plots WHERE quality<0")
     print(f"number of plots needs to be processed:  {cur.fetchone()[0]}")
