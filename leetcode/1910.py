@@ -2,10 +2,8 @@
 
 """
 1910. Remove All Occurrences of a Substring
-Difficulty:Medium
-Status: Accepted
-Runtime: 28 ms
-Memory Usage: 14.2 MB
+Difficulty: Medium
+Status: Accepted Runtime: 28 ms Memory Usage: 14.2 MB
 """
 
 

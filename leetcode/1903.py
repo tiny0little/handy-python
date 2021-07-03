@@ -5,9 +5,7 @@
 https://leetcode.com/contest/weekly-contest-246/problems/largest-odd-number-in-string/
 
 Difficulty: Easy
-Status: Accepted
-Runtime: 44 ms
-Memory Usage: 15.5 MB
+Status: Accepted Runtime: 44 ms Memory Usage: 15.5 MB
 """
 
 
