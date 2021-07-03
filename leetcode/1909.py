@@ -4,6 +4,7 @@
 1909. Remove One Element to Make the Array Strictly Increasing
 https://leetcode.com/contest/biweekly-contest-55/problems/remove-one-element-to-make-the-array-strictly-increasing/
 
+Difficulty: Easy
 Status: Accepted
 Runtime: 504 ms
 Memory Usage: 14.4 MB
