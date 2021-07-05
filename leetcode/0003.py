@@ -9,7 +9,7 @@ Memory Usage: 14.1 MB, less than 98.86% of Python3 online submissions
 
 
 class Solution:
-    def lengthOfLongestSubstring(self, s: str) -> int:
+    def lengthOfLongestSubstring(self, s: str):
         if len(s) <= 1: return len(s)
         result_substr_len = 0
         result_substr_start_index = 0
@@ -41,4 +41,4 @@ sol = Solution()
 # if sol.lengthOfLongestSubstring(s="bbbbb") != 1: print('err 2')
 # if sol.lengthOfLongestSubstring(s="pwwkew") != 3: print('err 3')
 
-print(sol.lengthOfLongestSubstring(s="a"))
+print(sol.lengthOfLongestSubstring(s="abcsybertyabca"))
