@@ -37,7 +37,7 @@ sol = Solution()
 strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
 
 # brute force time 40sec
-# with hash_list time <0.1sec
+# hash table time <0.1sec
 """
 strs = ["nozzle", "punjabi", "waterlogged", "imprison", "crux", "numismatists", "sultans", "rambles", "deprecating",
         "aware", "outfield", "marlborough", "guardrooms", "roast", "wattage", "shortcuts", "confidential", "reprint",

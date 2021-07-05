@@ -32,8 +32,8 @@ class Solution:
             result_substr_len = len(s) - current_substr_start_index
             result_substr_start_index = current_substr_start_index
 
-        # return s[result_substr_start_index:result_substr_start_index + result_substr_len]
-        return result_substr_len
+        return s[result_substr_start_index:result_substr_start_index + result_substr_len]
+        # return result_substr_len
 
 
 sol = Solution()
