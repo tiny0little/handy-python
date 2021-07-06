@@ -31,7 +31,7 @@ class Solution:
         self.build_dp_table(n)
         print(len(self.dp_table[n - 1]))
 
-        # formula is from https://home.ubalt.edu/ntsbarsh/business-stat/otherapplets/comcount.htm
+        # formula from https://home.ubalt.edu/ntsbarsh/business-stat/otherapplets/comcount.htm
         # combination of n objects in a group of size k with repetitions
         set_len = len(self.vowels)
         d = 1
