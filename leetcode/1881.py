@@ -3,7 +3,8 @@
 """
 1881. Maximum Value after Insertion
 Difficulty: Medium
-Status: Accepted Runtime: 2068 ms Memory Usage: 15.5 MB
+Status: Accepted
+Runtime: 2068 ms Memory Usage: 15.5 MB
 """
 
 
