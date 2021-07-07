@@ -5,8 +5,8 @@
 Medium
 
 Success
-Runtime: 1320 ms, faster than 13.16% of Python3 online submissions for Find a Peak Element II.
-Memory Usage: 45.8 MB, less than 59.14% of Python3 online submissions for Find a Peak Element II.
+Runtime: 1320 ms, faster than 13.16% of Python3 online submissions
+Memory Usage: 45.8 MB, less than 59.14% of Python3 online submissions
 """
 
 from typing import List
