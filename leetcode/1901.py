@@ -2,7 +2,7 @@
 
 """
 1901. Find a Peak Element II
-Medium
+Difficulty: Medium
 
 Success
 Runtime: 1320 ms, faster than 13.16% of Python3 online submissions

@@ -2,6 +2,7 @@
 """
 1904. The Number of Full Rounds You Have Played
 Difficulty: Medium
+
 Success
 Runtime: 28 ms, faster than 86.71% of Python3 online submissions
 Memory Usage: 14.4 MB, less than 29.32% of Python3 online submissions

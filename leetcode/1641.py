@@ -3,6 +3,7 @@
 """
 1641 Count Sorted Vowel Strings
 Difficulty: Medium
+
 Success
 Runtime: 32 ms, faster than 70.49% of Python3 online submissions
 Memory Usage: 14.1 MB, less than 92.04% of Python3 online submissions
