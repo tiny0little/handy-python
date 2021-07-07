@@ -34,7 +34,7 @@ class Solution:
 
 
 sol = Solution()
-print(sol.numberOfRounds(startTime="00:01", finishTime="00:02"))
+print(sol.numberOfRounds(startTime="00:01", finishTime="00:33"))
 
 if sol.numberOfRounds(startTime="12:01", finishTime="12:44") != 1: print('err-1')
 if sol.numberOfRounds(startTime="20:00", finishTime="06:00") != 40: print('err-2')
