@@ -4,6 +4,9 @@
 16. 3Sum Closest
 Difficulty: Medium
 
+Success
+Runtime: 6976 ms, faster than 5.01% of Python3 online submissions
+Memory Usage: 14.5 MB, less than 10.39% of Python3 online submissions
 """
 from typing import List
 
@@ -13,7 +16,7 @@ class Solution:
         if (len(nums)) <= 3: return sum(nums)
 
         nums.sort()
-        result_idx = []
+        # result_idx = []
         result_sum = nums[0] + nums[1] + nums[2]
         candidate_idx = [0, 1, 2]  # 0 = left_pointer 1 = mid_pointer 2 = right pointer
         candidate_sum = nums[0]
@@ -46,14 +49,13 @@ class Solution:
                 for j in range(1, gap):
                     candidate_idx[0] = candidate_idx[1] - i
                     candidate_idx[2] = candidate_idx[1] + j
-                    if candidate_idx[0] < 0: candidate_idx[0] = 0
-                    if candidate_idx[2] >= len(nums): candidate_idx[2] = len(nums) - 1
+                    if (candidate_idx[0] < 0) or (candidate_idx[2] >= len(nums)): break
                     if (candidate_idx[0] != candidate_idx[1]) and (candidate_idx[0] != candidate_idx[2]) and (
                             candidate_idx[1] != candidate_idx[2]):
                         candidate_sum = nums[candidate_idx[0]] + nums[candidate_idx[1]] + nums[candidate_idx[2]]
                         if abs(candidate_sum - target) < abs(result_sum - target):
                             result_sum = candidate_sum
-                            result_idx = candidate_idx[:]
+                            # result_idx = candidate_idx[:]
             candidate_idx[1] += 1
 
             steps_forward -= 1
