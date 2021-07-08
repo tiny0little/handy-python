@@ -31,10 +31,10 @@ args = parser.parse_args()
 
 with Halo(color='white'):
     netspace = 0
-    str0 = "cd ~/src/chia-blockchain/ && . ./activate && chia netspace | egrep 'The network has an estimated'"
-    if int(subprocess.getoutput(f"{str0} | wc -l")) > 0:
+    str0 = "cd ~/src/chia-blockchain/ && . ./activate && chia show -s | egrep 'Estimated network space'"
+    if int(subprocess.getoutput(f"{str0} | wc -l")) == 1:
         netspace0 = subprocess.getoutput(str0)
-        netspace0 = netspace0.split("The network has an estimated")[1].split("EiB")[0].strip()
+        netspace0 = netspace0.split("Estimated network space:")[1].split("EiB")[0].strip()
         netspace = float(netspace0)  # in EiB
 
     #
