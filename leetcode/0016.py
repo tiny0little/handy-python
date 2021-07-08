@@ -16,7 +16,6 @@ class Solution:
         if (len(nums)) <= 3: return sum(nums)
 
         nums.sort()
-        # result_idx = []
         result_sum = nums[0] + nums[1] + nums[2]
         candidate_idx = [0, 1, 2]  # 0 = left_pointer 1 = mid_pointer 2 = right pointer
         candidate_sum = nums[0]
@@ -53,9 +52,7 @@ class Solution:
                     if (candidate_idx[0] != candidate_idx[1]) and (candidate_idx[0] != candidate_idx[2]) and (
                             candidate_idx[1] != candidate_idx[2]):
                         candidate_sum = nums[candidate_idx[0]] + nums[candidate_idx[1]] + nums[candidate_idx[2]]
-                        if abs(candidate_sum - target) < abs(result_sum - target):
-                            result_sum = candidate_sum
-                            # result_idx = candidate_idx[:]
+                        if abs(candidate_sum - target) < abs(result_sum - target): result_sum = candidate_sum
             candidate_idx[1] += 1
 
             steps_forward -= 1
