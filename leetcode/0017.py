@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from typing import List
-
 """
 17 Letter Combinations of a Phone Number
 Difficulty: Medium
@@ -9,6 +7,7 @@ Difficulty: Medium
 Runtime: 32 ms, faster than 61.61% of Python3 online submissions for Letter Combinations of a Phone Number.
 Memory Usage: 14.3 MB, less than 61.08% of Python3 online submissions for Letter Combinations of a Phone Number.
 """
+from typing import List
 
 class Solution:
 
