@@ -163,6 +163,17 @@ def get_temp_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     return _result
 
 
+def get_proc_id(_log_file: str, _start_line: int, _end_line: int) -> str:
+    _result = '??'
+    if is_new_plotter(_log_file):
+        pass
+    else:
+        _str = f"awk 'NR >= {_start_line} && NR <= {_end_line}' {_log_file} | egrep 'Process ID is'"
+        if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
+            _result = subprocess.getoutput(f"{_str}").split(":")[1].strip()
+    return _result
+
+
 def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     _output = "??"
     if is_new_plotter(_log_file):
@@ -177,13 +188,18 @@ def get_final_dir(_log_file: str, _start_line: int, _end_line: int) -> str:
     return _output
 
 
-def get_memory_usage(_log_file: str):
-    _str = f"ps axv | grep chia | egrep 'plot|creat' | grep {os.path.basename(_log_file)[:-4]} " \
-           f"| grep -v tee | awk '{{print $9}}'"
+def get_memory_usage(_log_file: str, _start_line: int, _end_line: int) -> str:
     _result = 0
+    if is_new_plotter(_log_file):
+        _str = f"ps axv | grep chia | egrep 'plot|creat' | grep {os.path.basename(_log_file)[:-4]} " \
+               f"| grep -v tee | awk '{{print $9}}'"
+    else:
+        _id0 = get_proc_id(_log_file, _start_line, _end_line)
+        _str = f"ps axv | grep {_id0} | awk '{{print $9}}'"
     if int(subprocess.getoutput(f"{_str} | wc -l")) > 0:
         _result = float(subprocess.getoutput(f"{_str} | head -1")) * virtual_memory().total / (100 * 1e+9)
     return f"{_result:00.01f}"
+
 
 
 #
@@ -224,7 +240,7 @@ final_completed_table.append(
 final_running_table.append(
     [f"{colorWHITEonBLUE}{colorBOLD}RUNNING PLOTS{colorENDC}", "temp", "mem", "k", "buckets", "buffer",
      "threads", "p1", "p1 time", "p2", "p2 time", "p3", "p3 time", "p4", "p4 time", "runtime"])
-log_files = glob.glob(f"{log_location}/*{args.log_file}*log")
+log_files = glob.glob(f"{log_location}/*{args.log_file}*")
 
 total_memory_usage = 0
 with Halo(color='white'):
@@ -293,7 +309,7 @@ with Halo(color='white'):
 
         running_time = relativedelta(datetime.now(), start_time)
 
-        _memory_usage = get_memory_usage(log_file)
+        _memory_usage = get_memory_usage(log_file, start_line, end_line)
         total_memory_usage += float(_memory_usage)
         final_running_table.append([os.path.basename(log_file), get_temp_dir(log_file, start_line, end_line),
                                     _memory_usage,
