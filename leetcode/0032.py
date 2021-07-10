@@ -9,7 +9,7 @@ Difficulty: Hard
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         if len(s) < 2: return 0
-
+        
 
 sol = Solution()
 print(sol.longestValidParentheses(s="(()"))
