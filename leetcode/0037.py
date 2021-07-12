@@ -5,6 +5,7 @@ Difficulty: Hard
 
 """
 from typing import List
+import copy
 
 
 class Solution:
@@ -70,6 +71,7 @@ class Solution:
             if enough_is_enough_counter > 100:
                 enough_is_enough_counter = 0
                 solutions_stack_exhausted = True
+                if len(board_copy) > 0: board = [x[:] for x in board_copy]
                 if len(solutions_stack) > 0:
                     keep_looping = True
                     for cell_xy in list(solutions_stack):
@@ -79,33 +81,30 @@ class Solution:
                             no_more_solutions = True
                             for n in range(1, 10):
                                 if str(n) not in solutions_stack[cell_xy][1]:
-                                    board_copy0 = board[:][:]
                                     board[int(cell_xy[0])][int(cell_xy[1])] = str(n)
                                     if self.solution_validator(board):
                                         no_more_solutions = False
                                         list0 = solutions_stack[cell_xy][1]
                                         list0.append(str(n))
                                         solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, list0]
-                                        board_copy = board_copy0[:][:]
                                         keep_looping = False
                                         break
                             if no_more_solutions:
                                 solutions_stack_exhausted = True
                                 solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'][0] = True
-                                board = board_copy[:][:]
+                                board = [x[:] for x in board_copy]
 
                 if solutions_stack_exhausted:
                     tried_cells = []
                     for cell_xy in list(solutions_stack): tried_cells.append(cell_xy)
                     cell_xy = self.best_cell(board, tried_cells)
-                    board_copy0 = []
-                    board_copy0 = board[:]
+                    board_copy0 = [x[:] for x in board]
                     for n in range(1, 10):
                         board[int(cell_xy[0])][int(cell_xy[1])] = str(n)
                         if self.solution_validator(board):
                             solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, [str(n)]]
-                            board_copy = []
-                            board_copy = board_copy0[:]
+                            board_copy = [x[:] for x in board_copy0]
+                            break
 
             #
             # if already solved, no need to loop any more
