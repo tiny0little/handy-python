@@ -8,12 +8,12 @@ from typing import List
 
 
 class Solution:
-    def best_cell(self, board: List[List[str]]) -> List[int]:
+    def best_cell(self, board: List[List[str]], already_tried: List[str]) -> List[int]:
         result = [0, 0]
         result_values = [9, 9]
         for x in range(9):
             for y in range(9):
-                if board[x][y] == '.':
+                if (f'{x}{y}' not in already_tried) and (board[x][y] == '.'):
                     x_counter = 0
                     y_counter = 0
                     for i in range(9):
@@ -52,7 +52,9 @@ class Solution:
         solved_counter = 0
         enough_is_enough_counter = 0
         prev_solved_counter = 0
-        solutions_stack = {}  # ['xy'] = [give_up_this_cell_flag, [list of solutions tried], copy of the board]
+        solutions_stack = {}  # ['xy'] = [give_up_this_cell_flag, [list of solutions tried]]
+        board_copy = []
+        board_copy0 = []
         while True:
 
             #
@@ -75,27 +77,35 @@ class Solution:
                         if not solutions_stack[cell_xy][0]:
                             solutions_stack_exhausted = False
                             no_more_solutions = True
-                            board[:][:] = solutions_stack[cell_xy][2][:][:]
                             for n in range(1, 10):
                                 if str(n) not in solutions_stack[cell_xy][1]:
+                                    board_copy0 = board[:][:]
                                     board[int(cell_xy[0])][int(cell_xy[1])] = str(n)
                                     if self.solution_validator(board):
                                         no_more_solutions = False
                                         list0 = solutions_stack[cell_xy][1]
                                         list0.append(str(n))
-                                        solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, list0, board[:][:]]
+                                        solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, list0]
+                                        board_copy = board_copy0[:][:]
                                         keep_looping = False
                                         break
                             if no_more_solutions:
                                 solutions_stack_exhausted = True
                                 solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'][0] = True
+                                board = board_copy[:][:]
 
                 if solutions_stack_exhausted:
-                    cell_xy = self.best_cell(board)
+                    tried_cells = []
+                    for cell_xy in list(solutions_stack): tried_cells.append(cell_xy)
+                    cell_xy = self.best_cell(board, tried_cells)
+                    board_copy0 = []
+                    board_copy0 = board[:]
                     for n in range(1, 10):
                         board[int(cell_xy[0])][int(cell_xy[1])] = str(n)
                         if self.solution_validator(board):
-                            solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, [str(n)], board[:][:]]
+                            solutions_stack[f'{cell_xy[0]}{cell_xy[1]}'] = [False, [str(n)]]
+                            board_copy = []
+                            board_copy = board_copy0[:]
 
             #
             # if already solved, no need to loop any more
