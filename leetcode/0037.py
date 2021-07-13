@@ -13,39 +13,39 @@ class Solution:
         self.board_copy = [['0' for x in range(9)] for y in range(9)]
         self.solutions_list = {}  # [xy] = [[list of possible solutions], current_solution_idx]
 
-    def best_cell(self, board: List[List[str]], already_tried: List[List[str]]) -> List[int]:
+    def best_cell(self, _board: List[List[str]], already_tried: List[List[int]]) -> List[int]:
         result = [-1, -1]
         dot_result = 20
         for x in range(9):
             for y in range(9):
-                if ([x, y] not in already_tried) and (board[y][x] == '.'):
+                if ([x, y] not in already_tried) and (_board[y][x] == '.'):
                     dot_counter = 0
                     for i in range(9):
-                        if (board[i][x] == '.') and (i != y): dot_counter += 1
-                        if (board[y][i] == '.') and (i != x): dot_counter += 1
+                        if (_board[i][x] == '.') and (i != y): dot_counter += 1
+                        if (_board[y][i] == '.') and (i != x): dot_counter += 1
                     if dot_counter < dot_result:
                         dot_result = dot_counter
                         result = [x, y]
 
         return result
 
-    def best_cells_list(self, board: List[List[str]]) -> List[List[str]]:
+    def best_cells_list(self, _board: List[List[str]]) -> List[List[int]]:
         result = []
         while True:
-            cell = self.best_cell(board, result)
+            cell = self.best_cell(_board, result)
             if cell != [-1, -1]:
                 result.append(cell)
             else:
                 break
         return result
 
-    def solution_validator(self, board: List[List[str]]) -> bool:
-        for i in range(len(board)):
+    def solution_validator(self, _board: List[List[str]]) -> bool:
+        for i in range(len(_board)):
             column = []
             row = []
-            for col in range(len(board)):
-                col_val = board[col][i]
-                row_val = board[i][col]
+            for col in range(len(_board)):
+                col_val = _board[col][i]
+                row_val = _board[i][col]
                 if col_val != '.': column.append(col_val)
                 if row_val != '.': row.append(row_val)
             if (len(column) != len(set(column))) or (len(row) != len(set(row))): return False
@@ -55,58 +55,58 @@ class Solution:
                 box = []
                 for i in range(3):
                     for j in range(3):
-                        val = board[y_delta + i][x_delta + j]
+                        val = _board[y_delta + i][x_delta + j]
                         if val != '.': box.append(val)
                 if len(box) != len(set(box)): return False
 
         return True
 
-    def already_solved(self, board: List[List[str]]) -> bool:
+    def already_solved(self, _board: List[List[str]]) -> bool:
         for x in range(9):
             for y in range(9):
-                if board[y][x] == '.': return False
+                if _board[y][x] == '.': return False
         return True
 
     def has_backup(self) -> bool:
         return self.board_copy[0][0] != '0'
 
-    def backup_board(self, board: List[List[str]]) -> None:
+    def backup_board(self, _board: List[List[str]]) -> None:
         for x in range(9):
             for y in range(9):
-                self.board_copy[y][x] = board[y][x]
+                self.board_copy[y][x] = _board[y][x]
 
-    def restore_board(self, board: List[List[str]]) -> None:
+    def restore_board(self, _board: List[List[str]]) -> None:
         for x in range(9):
             for y in range(9):
-                board[y][x] = self.board_copy[y][x]
+                _board[y][x] = self.board_copy[y][x]
 
-    def print_board(self, board: List[List[str]]) -> None:
-        for i in range(9): print(f'{board[i]},')
+    def print_board(self, _board: List[List[str]]) -> None:
+        for i in range(9): print(f'{_board[i]},')
         print()
 
     def print_solutions_list(self) -> None:
         for key in list(self.solutions_list):
             print(f'[{key}] {self.solutions_list[key]}')
 
-    def count_empty_cells(self, board: List[List[str]]) -> int:
+    def count_empty_cells(self, _board: List[List[str]]) -> int:
         result = 0
         for x in range(9):
             for y in range(9):
-                if board[y][x] == '.': result += 1
+                if _board[y][x] == '.': result += 1
         return result
 
-    def solution_list_builder(self, board: List[List[str]]) -> None:
+    def solution_list_builder(self, _board: List[List[str]]) -> None:
         self.solutions_list = {}
-        best_cells = self.best_cells_list(board)
+        best_cells = self.best_cells_list(_board)
         for cell in best_cells:
             x = cell[0]
             y = cell[1]
             list0 = []
-            if board[y][x] == '.':
+            if _board[y][x] == '.':
                 for n in range(1, 10):
-                    board[y][x] = str(n)
-                    if self.solution_validator(board): list0.append(str(n))
-                board[y][x] = '.'
+                    _board[y][x] = str(n)
+                    if self.solution_validator(_board): list0.append(str(n))
+                _board[y][x] = '.'
             self.solutions_list[f'{x}{y}'] = [list0, -1]
 
     def solveSudoku(self, board: List[List[str]]) -> None:
@@ -231,6 +231,6 @@ board = [[".", ".", ".", ".", ".", "7", ".", ".", "9"],
          ["8", ".", ".", ".", "2", "3", ".", ".", "."],
          ["7", ".", ".", ".", "5", ".", ".", "4", "."],
          ["5", "3", "1", ".", "7", ".", ".", ".", "."]]
-sol.print_board(board=board)
-sol.solveSudoku(board=board)
-sol.print_board(board=board)
+sol.print_board(board)
+sol.solveSudoku(board)
+sol.print_board(board)
