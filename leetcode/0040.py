@@ -42,13 +42,13 @@ class Solution:
 
 sol = Solution()
 
-# stime = time.time()
-# print(sol.combinationSum2(candidates=[10, 1, 2, 7, 6, 1, 5], target=8))
-# print(f'runtime: {time.time() - stime:.1f}sec')
-#
-# stime = time.time()
-# print(sol.combinationSum2(candidates=[2, 5, 2, 1, 2], target=5))
-# print(f'runtime: {time.time() - stime:.1f}sec')
+stime = time.time()
+print(sol.combinationSum2(candidates=[10, 1, 2, 7, 6, 1, 5], target=8))
+print(f'runtime: {time.time() - stime:.1f}sec')
+
+stime = time.time()
+print(sol.combinationSum2(candidates=[2, 5, 2, 1, 2], target=5))
+print(f'runtime: {time.time() - stime:.1f}sec')
 
 stime = time.time()
 print(sol.combinationSum2(candidates=[1, 1], target=1))
