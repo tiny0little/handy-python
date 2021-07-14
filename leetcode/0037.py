@@ -216,10 +216,10 @@ board = [["5", "3", ".", ".", "7", ".", ".", ".", "."],
          [".", ".", ".", "4", "1", "9", ".", ".", "5"],
          [".", ".", ".", ".", "8", ".", ".", "7", "9"]]
 sol = Solution()
-start_time = time.time()
+stime = time.time()
 sol.solveSudoku(board)
 sol.print_board(board)
-print(f'runtime: {time.time() - start_time:.1f}sec')
+print(f'runtime: {time.time() - stime:.1f}sec')
 print()
 
 board = [[".", ".", "9", "7", "4", "8", ".", ".", "."],
