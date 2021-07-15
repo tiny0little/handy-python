@@ -11,8 +11,18 @@ import time
 
 class Solution:
     def combine(self, n: int, k: int) -> List[List[int]]:
-        dp_list = [[] * k]
-        
+        char_set = [_ for _ in range(1, n + 1)]
+        dp_list = [[] for _ in range(k + 1)]
+        for c in char_set: dp_list[1].append([c])
+        for i in range(2, k + 1):
+            for c in char_set:
+                for l in dp_list[i - 1]:
+                    l0 = sorted(l + [c])
+                    list(dict.fromkeys(l0))
+                    if (list(dict.fromkeys(l0)) == list(l0)) and (l0 not in dp_list[i]): dp_list[i].append(l0)
+
+        return dp_list[k]
+
     def combine_brute(self, n: int, k: int) -> List[List[int]]:
         char_set = [v for v in range(1, n + 1)]
         bit_map = [v for v in range(k)]
@@ -21,7 +31,8 @@ class Solution:
         while True:
             result0 = []
             for i in range(len(bit_map)): result0.append(char_set[bit_map[i]])
-            if list(set(result0)) == list(result0): result.append(result0)
+            result0.sort()
+            if (list(dict.fromkeys(result0)) == list(result0)) and (result0 not in result): result.append(result0)
 
             bit_map[-1] += 1
             over_flow = False
@@ -41,7 +52,7 @@ class Solution:
 
 sol = Solution()
 
-
 stime = time.time()
-print(sol.combine_brute(n=10, k=7))
+o = sol.combine(n=17, k=16)
+print(f'{len(o)} {o}')
 print(f'runtime: {time.time() - stime:.1f}sec')
