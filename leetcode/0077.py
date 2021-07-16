@@ -4,26 +4,50 @@
 77. Combinations
 Difficulty: Medium
 
+Success
+Runtime: 600 ms, faster than 23.89% of Python3 online submissions
+Memory Usage: 15.8 MB, less than 52.46% of Python3 online submissions
 """
 from typing import List
 import time
 
 
 class Solution:
-    def combine(self, n: int, k: int) -> List[List[int]]:
+    def combine_dfs(self, n: int, k: int) -> List[List[int]]:
+        char_set = [_ for _ in range(1, n + 1)]
+        r = []
+
+        def dfs(cur, pos):
+            if len(cur) == k: r.append(cur)
+            if pos == len(char_set): return
+
+            if type(char_set) is list:
+                for i in range(pos, len(char_set)):
+                    dfs(cur + [char_set[i]], i + 1)
+            else:
+                for i in range(pos, len(char_set)):
+                    dfs(cur + char_set[i], i + 1)
+
+        dfs([], 0)
+        return r
+
+    def combine_dp(self, n: int, k: int) -> List[List[int]]:
         char_set = [_ for _ in range(1, n + 1)]
         dp_list = [[] for _ in range(k + 1)]
+
+        # dp for k=1
         for c in char_set: dp_list[1].append([c])
+
         for i in range(2, k + 1):
             for c in char_set:
-                for l in dp_list[i - 1]:
-                    l0 = sorted(l + [c])
-                    list(dict.fromkeys(l0))
-                    if (list(dict.fromkeys(l0)) == list(l0)) and (l0 not in dp_list[i]): dp_list[i].append(l0)
+                for list0 in dp_list[i - 1]:
+                    list1 = sorted(list0 + [c])
+                    if (list(dict.fromkeys(list1)) == list(list1)) and (list1 not in dp_list[i]):
+                        dp_list[i].append(list1)
 
         return dp_list[k]
 
-    def combine_brute(self, n: int, k: int) -> List[List[int]]:
+    def combine_bf(self, n: int, k: int) -> List[List[int]]:
         char_set = [v for v in range(1, n + 1)]
         bit_map = [v for v in range(k)]
         result = []
@@ -53,6 +77,17 @@ class Solution:
 sol = Solution()
 
 stime = time.time()
-o = sol.combine(n=17, k=16)
+o = sol.combine_dfs(n=5, k=3)
 print(f'{len(o)} {o}')
-print(f'runtime: {time.time() - stime:.1f}sec')
+print(f'runtime: {time.time() - stime:.2f}sec')
+
+"""
+dfs(n=20, k=15) 0.3sec
+dfs(n=20, k=10) 0.5sec
+dp(n=17, k=14) 118sec dfs(n=17, k=14) 0sec
+dp(n=17, k=13) 115sec dfs(n=17, k=13) 0sec
+dp(n=16, k=13) 28sec dfs(n=16, k=13) 0sec
+dp(n=16, k=14) 27sec dp(n=16, k=14) 0sec
+bf(n=11, k=8) 310sec dp(n=11, k=8) 0sec
+bf(n=11, k=7) 29sec dp(n=11, k=7) 0sec
+"""
