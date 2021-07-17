@@ -19,18 +19,6 @@ class Solution:
         return True
 
     #
-    # backtracking DSF
-    def numTilePossibilities_dsf(self, tiles: str) -> int:
-        result = []
-
-        def backtracker(n: int):
-            if n > len(tiles):
-                return
-
-        backtracker(1)
-        return len(result)
-
-    #
     # dynamic programming
     def numTilePossibilities_dp(self, tiles: str) -> int:
         dp_list = [[] for _ in range(len(tiles) + 1)]
@@ -56,7 +44,7 @@ class Solution:
 
 sol = Solution()
 stime = time.time()
-print(sol.numTilePossibilities_dp(tiles="ABCDEFGH"))
+print(sol.numTilePossibilities_dp(tiles="ABCDEFG"))
 print(f'runtime: {time.time() - stime:.2f}sec')
 
 if sol.numTilePossibilities_dp(tiles="AAB") != 8: print('err-1')
