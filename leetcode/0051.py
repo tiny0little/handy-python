@@ -55,21 +55,20 @@ class Solution:
 
     def solveNQueens(self, n: int) -> List[List[str]]:
 
-        def backtracker(queen_number: int) -> bool:
+        def backtracker(queen_number: int):
             if queen_number == 0:
                 result0 = [''.join(self.board[_]) for _ in range(len(self.board))]
                 if result0 not in result: result.append(result0)
-                return False
+                return
 
             y = queen_number - 1
             for x in range(n):
                 if self.is_position_valid(x=x, y=y):
                     # note that board's coordinates are swapped -> [y][x]
                     self.board[y][x] = 'Q'
-                    if backtracker(queen_number - 1): return True
+                    backtracker(queen_number - 1)
                     self.board[y][x] = '.'
 
-            return False
 
         self.board = [['.' for _ in range(n)] for _ in range(n)]
         result = []
@@ -81,5 +80,5 @@ class Solution:
 
 sol = Solution()
 stime = time.time()
-print(sol.solveNQueens(n=11))
+print(sol.solveNQueens(n=7))
 print(f'runtime: {time.time() - stime:.2f}sec')
