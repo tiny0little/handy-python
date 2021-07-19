@@ -29,9 +29,9 @@ class Solution:
         return True
 
     def permuteUnique(self, nums: List[int]) -> List[List[int]]:
-        return self.permute(nums)
+        return self.permute_dp(nums)
 
-    def permute(self, nums: List[int]) -> List[List[int]]:
+    def permute_dp(self, nums: List[int]) -> List[List[int]]:
         nums_len = len(nums)
         dp_list = [[] for _ in range(nums_len + 1)]
 
@@ -47,8 +47,49 @@ class Solution:
 
         return dp_list[nums_len]
 
+    def permute_rc(self, nums: List[int]) -> List[List[int]]:
+        result = []
+
+        def backtracker(nums0: List[int], l_idx: int, r_idx: int):
+            if l_idx == r_idx:
+                result.append(nums0[:])
+            else:
+                for i in range(l_idx, r_idx + 1):
+                    nums0[l_idx], nums0[i] = nums0[i], nums0[l_idx]
+                    backtracker(nums0, l_idx + 1, r_idx)
+                    nums0[l_idx], nums0[i] = nums0[i], nums0[l_idx]
+
+        backtracker(nums, 0, len(nums) - 1)
+        return result
+
+    def permute_bt(self, nums: List[int]) -> List[List[int]]:
+        result = []
+
+        def backtracker(nums0: List[int], result0: List[int]):
+            if len(nums0) == 0:
+                result.append(result0)
+            else:
+                for i in range(len(nums0)):
+                    backtracker(nums0[:i] + nums0[i + 1:], result0 + [nums0[i]])
+
+        backtracker(nums, [])
+        return result
+
 
 sol = Solution()
+nums0 = [1, 2, 3, 4, 5, 6, 7, 8]
+
 stime = time.time()
-print(sol.permute(nums=[1, 1, 2]))
+r = sol.permute_dp(nums=nums0)
+print(len(r))
+print(f'>>> runtime: {time.time() - stime:.2f}sec')
+
+stime = time.time()
+r = sol.permute_rc(nums=nums0)
+print(len(r))
+print(f'>>> runtime: {time.time() - stime:.2f}sec')
+
+stime = time.time()
+r = sol.permute_bt(nums=nums0)
+print(len(r))
 print(f'>>> runtime: {time.time() - stime:.2f}sec')
