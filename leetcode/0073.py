@@ -34,7 +34,7 @@ class Solution:
 
 sol = Solution()
 stime = time.time()
-matrix0 = [[0, 1, 2, 0], [3, 4, 5, 2], [1, 3, 1, 5]]
+matrix0 = [[0, 0, 0, 5], [4, 3, 1, 4], [0, 1, 1, 4], [1, 2, 1, 3], [0, 0, 1, 1]]
 sol.setZeroes(matrix=matrix0)
 print(matrix0)
 print(f'runtime: {time.time() - stime:.2f}sec')
@@ -50,3 +50,7 @@ if matrix0 != [[0, 0, 0, 0], [0, 4, 5, 0], [0, 3, 1, 0]]: print('err-2')
 matrix0 = [[1, 2, 3, 4], [5, 0, 7, 8], [0, 10, 11, 12], [13, 14, 15, 0]]
 sol.setZeroes(matrix=matrix0)
 if matrix0 != [[0, 0, 3, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]: print('err-19')
+
+matrix0 = [[0, 0, 0, 5], [4, 3, 1, 4], [0, 1, 1, 4], [1, 2, 1, 3], [0, 0, 1, 1]]
+sol.setZeroes(matrix=matrix0)
+if matrix0 != [[0, 0, 0, 0], [0, 0, 0, 4], [0, 0, 0, 0], [0, 0, 0, 3], [0, 0, 0, 0]]: print('err-148')
