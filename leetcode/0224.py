@@ -8,6 +8,9 @@ import time
 
 
 class Solution:
+    def __init__(self):
+        self.parentheses_dp = {}
+        self.parentheses_dp_processed = False
 
     # calculate simple expression, without parentheses
     def calc_simple_unit(self, s: str) -> str:
@@ -41,13 +44,49 @@ class Solution:
         s = ''.join(s.split())
         return s
 
-    def sign_changer(self, s: str) -> str:
+    def negator(self, s: str) -> str:
         s = s.replace('-', '~')
         s = s.replace('+', '-')
         s = s.replace('~', '+')
         return s
 
     def parentheses_opener(self, s: str) -> str:
+        s = ''.join(s.split())
+        if not self.parentheses_dp_processed:
+            i = -1
+            while True:
+                i = s.find('(', i + 1)
+                if i < 0: break
+                self.parentheses_dp[i] = '('
+            i = -1
+            while True:
+                i = s.find(')', i + 1)
+                if i < 0: break
+                self.parentheses_dp[i] = ')'
+
+        self.parentheses_dp_processed = True
+
+        print(self.parentheses_dp)
+
+        p_start_idx = 0
+        p_end_idx = 0
+        parentheses_sign = '+'
+        parentheses_level = 0
+        pairs = []
+        for idx in sorted(self.parentheses_dp):
+            if self.parentheses_dp[idx] == '(':
+                if parentheses_level == 0:
+                    p_start_idx = idx
+                    if (idx > 0) and (s[idx - 1] == '-'): parentheses_sign = '-'
+                parentheses_level += 1
+            elif self.parentheses_dp[idx] == ')':
+                parentheses_level -= 1
+                if parentheses_level == 0:
+
+        return s
+
+        """
+        # backup
         s = ''.join(s.split())
         open_parentheses_idx = -1
         parentheses_sign = '+'
@@ -63,27 +102,25 @@ class Solution:
                 parentheses_level -= 1
                 if parentheses_level == 0:
                     s0 = self.parentheses_opener(s[open_parentheses_idx + 1:i])
-                    if parentheses_sign == '-': s0 = self.sign_changer(s0)
+                    if parentheses_sign == '-': s0 = self.negator(s0)
                     s = s[:open_parentheses_idx] + s0 + s[i + 1:]
                     open_parentheses_idx = -1
                     parentheses_sign = '+'
                     i = -1
             i += 1
-        return s
+        """
 
     def optimizer(self, s: str) -> str:
         s = ''.join(s.split())
         minimal_optimized_len = 11
         i = 5
         while i <= len(s) - minimal_optimized_len - 1:
-            for j in range(3):
-                if (s[i - j] == '(') or (s[i - j] == ')'): i += 1
             if s[i].isnumeric() and (s[i + 1] == '+') and s[i + 2].isnumeric():
                 start_idx = i + 2
-                pidx0 = s[start_idx:].find(')')
-                if pidx0 == -1: pidx0 = len(s)
-                pidx1 = s[start_idx:].find('(')
-                if pidx1 == -1: pidx1 = len(s)
+                pidx0 = s.find(')', start_idx) - start_idx
+                if pidx0 < 0: pidx0 = len(s)
+                pidx1 = s.find('(', start_idx) - start_idx
+                if pidx1 < 0: pidx1 = len(s)
                 pidx = min(pidx0, pidx1)
                 if pidx > minimal_optimized_len:
                     # pidx -= 3
@@ -93,8 +130,7 @@ class Solution:
                         pidx -= 1
                     pidx -= 2
                     s0 = self.calc_simple_unit(s[start_idx:start_idx + pidx])
-                    negative_adjustment = 0
-                    if int(s0) < 0: negative_adjustment = 1
+                    negative_adjustment = 1 if int(s0) < 0 else 0
                     s = s[:start_idx - negative_adjustment] + s0 + s[start_idx + pidx:]
                 else:
                     i += pidx - 1
@@ -109,6 +145,9 @@ class Solution:
             print(f") = {s.count(')')}")
             return
 
+        self.parentheses_dp = {}
+        self.parentheses_dp_processed = False
+
         s = self.optimizer(s)
         s = self.parentheses_opener(s)
         s = self.calc_simple_unit(s)
@@ -116,10 +155,11 @@ class Solution:
 
 
 sol = Solution()
-# stime = time.time()
-# print(sol.calculate(s="1+4-(45-(5-(2-7))-((((3-4)+5))+7)-65)-7+(6+8)"))
-# print(f'runtime: {time.time() - stime:.2f}sec')
-#
+
+print(sol.calculate(s="1+4-(45-(5-(2-7))-((((3-4)+5))+7)-65)-7+(6+8)"))
+
+exit()
+
 # if sol.calculate(s="1 + 1") != 2: print('err-1')
 # if sol.calculate(s=" 2-1 + 2 ") != 3: print('err-2')
 # if sol.calculate(s="(1+(4+5+2)-3)+(6+8)") != 23: print('err-3')
