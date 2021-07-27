@@ -27,12 +27,15 @@ class Solution:
         while len(s) > 0:
             d = int(s[-1])
             s = s[:-1]
-            result0 = 0
-            for i in range(digit_position): result0 += self.dp_list[i]
-            min_num = 10 ** (digit_position - 1)
             if d == 1:
-                result +=
+                result0 = 0
+                for i in range(digit_position - 1): result0 += self.dp_list[i]
+                min_num = int(10 ** (digit_position - 2))
+                result += min_num + d * result0 + digit_position
             elif d > 1:
+                result0 = 0
+                for i in range(digit_position): result0 += self.dp_list[i]
+                min_num = 10 ** (digit_position - 1)
                 result += min_num + d * result0
 
             digit_position += 1
@@ -43,16 +46,16 @@ class Solution:
 sol = Solution()
 
 stime = time.time()
-print(sol.countDigitOne(n=100))
+print(sol.countDigitOne(n=211))
 print(f'runtime: {time.time() - stime:.2f}sec')
 
 if sol.countDigitOne(n=13) != 6: print('err-1')
 if sol.countDigitOne(n=123) != 57: print('err-1a')
-if sol.countDigitOne(n=100) != 21: print('err-1b')
-if sol.countDigitOne(n=111) != 36: print('err-1c')
-if sol.countDigitOne(n=101) != 23: print('err-1d')
+if sol.countDigitOne(n=99) != 20: print('err-1b')
+if sol.countDigitOne(n=100) != 21: print('err-1c')
+if sol.countDigitOne(n=111) != 36: print('err-1d')
+if sol.countDigitOne(n=101) != 23: print('err-1e')
 if sol.countDigitOne(n=0) != 0: print('err-2')
 if sol.countDigitOne(n=999) != 300: print('err-3')
 if sol.countDigitOne(n=90909) != 46281: print('err-4')
 if sol.countDigitOne(n=824883294) != 767944060: print('err-35')
-print(sol.dp_list)
