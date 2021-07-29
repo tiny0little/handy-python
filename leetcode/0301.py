@@ -3,6 +3,7 @@
 301. Remove Invalid Parentheses
 Difficulty: Hard
 
+Time Limit Exceeded
 """
 from typing import List
 import time
