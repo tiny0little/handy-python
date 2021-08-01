@@ -3,11 +3,15 @@
 import subprocess
 from halo import Halo
 import time
-from typing import List
+import argparse
 
 blockchain_src = '/home/user/src'
 timeout_cmd = 'timeout 5'
 blockchain_list = []
+
+parser = argparse.ArgumentParser(description="crypto wallets")
+parser.add_argument("-c", "--crypto", type=str, help="part of the name of cryptocurrency")
+args = parser.parse_args()
 
 
 def wallet_service(blockchain: str, cmd: str):
@@ -15,7 +19,7 @@ def wallet_service(blockchain: str, cmd: str):
     blockchain_path = f'{blockchain_src}/{blockchain}'
 
     str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} {cmd} wallet-only"
-    with Halo(text=f'{blockchain_name} wallet - {cmd}', color='white'): subprocess.getoutput(str0)
+    with Halo(text=f'{cmd}ing {blockchain_name} wallet', color='white'): subprocess.getoutput(str0)
 
 
 def farm_state(blockchain: str, info: str, cmd: str) -> str:
@@ -28,8 +32,11 @@ def farm_state(blockchain: str, info: str, cmd: str) -> str:
     return result
 
 
-str0 = f"cd {blockchain_src} && ls | grep blockchain | sort"
+str0 = f'cd {blockchain_src} && ls | egrep blockchain | sort '
+if args.crypto is not None: str0 += f" | egrep '{args.crypto}'"
 if int(subprocess.getoutput(f"{str0} | wc -l")) > 0: blockchain_list = subprocess.getoutput(f"{str0}").split('\n')
+
+# for blockchain0 in blockchain_list: wallet_service(blockchain0, 'stop')
 
 for blockchain0 in blockchain_list:
     blockchain_path = f'{blockchain_src}/{blockchain0}'
@@ -48,8 +55,6 @@ for blockchain0 in blockchain_list:
         str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} wallet show -f {fingerprint}"
         with Halo(text=f'waiting for {blockchain_name}/{fingerprint} wallet to sync', color='white'):
             while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1: time.sleep(30)
-
-        # str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} wallet show -f {fingerprint}"
         with Halo(text=f'getting balance of {blockchain_name}/{fingerprint} wallet', color='white'):
             str1 = subprocess.getoutput(f'{str0} | grep Spendable | head -1').split(':')[1].split('(')[0].strip()
         print(f'{blockchain_name}/{fingerprint}: {str1}')
