@@ -21,13 +21,13 @@ else:
     print('ERROR: no blockchain directories found')
     exit()
 
+
 if args.show:
     for blockchain0 in blockchain_list:
         if blockchain0[0] == 'chaingreen': continue
-        if blockchain0[0] == 'chia': continue
 
         str0 = f"cd {blockchain_src}/{blockchain0[1]} && . ./activate && {blockchain0[0]} start wallet-only"
-        with Halo(text=f'starting wallet for {blockchain0[0]}', color='white'):
+        with Halo(text=f'starting {blockchain0[0]} wallet', color='white'):
             subprocess.getoutput(str0)
 
         str0 = f"cd {blockchain_src}/{blockchain0[1]} && . ./activate && {blockchain0[0]} wallet show"
@@ -35,9 +35,17 @@ if args.show:
             while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1: time.sleep(20)
 
         str0 = f"cd {blockchain_src}/{blockchain0[1]} && . ./activate && {blockchain0[0]} wallet show"
-        str1 = subprocess.getoutput(f'{str0} | grep Spendable').split(':')[1].strip()
+        if blockchain0[0] == 'chia': str0 += " -f 2876418895"
+        with Halo(text=f'getting balance of {blockchain0[0]} wallet', color='white'):
+            str1 = subprocess.getoutput(f'{str0} | grep Spendable').split(':')[1].split('(')[0].strip()
         print(f'{blockchain0[0]}: {str1}')
 
+        if blockchain0[0] == 'chia':
+            str0 = f"cd {blockchain_src}/{blockchain0[1]} && . ./activate && {blockchain0[0]} wallet show -f 911097432"
+            with Halo(text=f'getting balance of {blockchain0[0]}  wallet', color='white'):
+                str1 = subprocess.getoutput(f'{str0} | grep Spendable').split(':')[1].split('(')[0].strip()
+            print(f'{blockchain0[0]} 911097432: {str1}')
+
         str0 = f"cd {blockchain_src}/{blockchain0[1]} && . ./activate && {blockchain0[0]} stop wallet-only"
-        with Halo(text=f'stopping wallet for {blockchain0[0]}', color='white'):
+        with Halo(text=f'stopping {blockchain0[0]} wallet', color='white'):
             subprocess.getoutput(str0)
