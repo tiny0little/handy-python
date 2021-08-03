@@ -4,6 +4,7 @@ import subprocess
 from halo import Halo
 import time
 import argparse
+from tabulate import tabulate
 
 colorENDC = '\033[0m'
 colorBOLD = '\033[1m'
@@ -14,9 +15,11 @@ colorWHITEonBLUE = '\33[44m'
 blockchain_src = '/home/user/src'
 timeout_cmd = 'timeout 5'
 blockchain_list = []
+tabula = []
 
 parser = argparse.ArgumentParser(description="crypto wallets")
 parser.add_argument("-c", "--crypto", type=str, help="part of the name of cryptocurrency")
+parser.add_argument("-v", "--verbose", action="store_true", help="show more")
 args = parser.parse_args()
 
 
@@ -42,6 +45,8 @@ str0 = f'cd {blockchain_src} && ls | egrep blockchain | sort '
 if args.crypto is not None: str0 += f" | egrep '{args.crypto}'"
 if int(subprocess.getoutput(f"{str0} | wc -l")) > 0: blockchain_list = subprocess.getoutput(f"{str0}").split('\n')
 
+tabula_row1 = []
+tabula_row2 = []
 for blockchain0 in blockchain_list:
     blockchain_path = f'{blockchain_src}/{blockchain0}'
     blockchain_name = blockchain0.split('-')[0].strip()
@@ -61,13 +66,20 @@ for blockchain0 in blockchain_list:
             while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1: time.sleep(30)
         with Halo(text=f'getting balance of {blockchain_name}/{fingerprint} wallet', color='white'):
             str1 = subprocess.getoutput(f'{str0} | grep Spendable | head -1').split(':')[1].split('(')[0].strip()
-        print(f'{colorWHITEonGREEN}{blockchain_name}/{fingerprint}{colorENDC}: {str1}')
+        if args.verbose: print(f'{colorWHITEonPURPLE}{blockchain_name}/{fingerprint}{colorENDC}: {str1}')
+
+        tabula_row1.append(f'{blockchain_name}')
+        tabula_row2.append(f'{str1}')
 
     tmp0 = farm_state(blockchain0, f'getting expected time to win for {blockchain_name}', 'Expected time to win')
-    print(f'expected time to win: {tmp0}')
+    if args.verbose: print(f'expected time to win: {tmp0}')
 
     tmp0 = farm_state(blockchain0, f'getting expected time to win for {blockchain_name}', 'Estimated network space')
-    print(f'network space: {tmp0}')
+    if args.verbose: print(f'network space: {tmp0}')
 
     wallet_service(blockchain0, 'stop')
-    print()
+    if args.verbose: print()
+
+tabula.append(tabula_row1)
+tabula.append(tabula_row2)
+print(tabulate(tabula, headers="firstrow", tablefmt="pretty"))
