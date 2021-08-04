@@ -23,12 +23,12 @@ parser.add_argument("-v", "--verbose", action="store_true", help="show more")
 args = parser.parse_args()
 
 
-def wallet_service(blockchain: str, cmd: str):
+def crypto_service(blockchain: str, service: str, cmd: str):
     blockchain_name = blockchain.split('-')[0].strip()
     blockchain_path = f'{blockchain_src}/{blockchain}'
 
-    str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} {cmd} wallet-only"
-    with Halo(text=f'{cmd}ing {blockchain_name} wallet', color='white'): subprocess.getoutput(str0)
+    str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} {cmd} {service}"
+    with Halo(text=f'{cmd}ing {blockchain_name} {service}', color='white'): subprocess.getoutput(str0)
 
 
 def farm_state(blockchain: str, info: str, cmd: str) -> str:
@@ -51,7 +51,9 @@ for blockchain0 in blockchain_list:
     blockchain_path = f'{blockchain_src}/{blockchain0}'
     blockchain_name = blockchain0.split('-')[0].strip()
 
-    wallet_service(blockchain0, 'start')
+    crypto_service(blockchain0, 'node', 'start')
+    crypto_service(blockchain0, 'wallet-only', 'start')
+    if blockchain_name != 'chia': crypto_service(blockchain0, 'farmer-no-wallet', 'start')
 
     fingerprints = []
     str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} keys show | grep Fingerprint"
@@ -66,6 +68,7 @@ for blockchain0 in blockchain_list:
             while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1: time.sleep(30)
         with Halo(text=f'getting balance of {blockchain_name}/{fingerprint} wallet', color='white'):
             str1 = subprocess.getoutput(f'{str0} | grep Spendable | head -1').split(':')[1].split('(')[0].strip()
+            str1 = str1.split(' ')[0].strip()
         if args.verbose: print(f'{colorWHITEonPURPLE}{blockchain_name}/{fingerprint}{colorENDC}: {str1}')
 
         tabula_row1.append(f'{blockchain_name}')
@@ -77,7 +80,7 @@ for blockchain0 in blockchain_list:
     tmp0 = farm_state(blockchain0, f'getting expected time to win for {blockchain_name}', 'Estimated network space')
     if args.verbose: print(f'network space: {tmp0}')
 
-    wallet_service(blockchain0, 'stop')
+    crypto_service(blockchain0, 'wallet-only', 'stop')
     if args.verbose: print()
 
 tabula.append(tabula_row1)
