@@ -72,9 +72,9 @@ for blockchain0 in blockchain_list:
     blockchain_path = f'{blockchain_src}/{blockchain0}'
     blockchain_name = blockchain0.split('-')[0].strip()
 
-    crypto_service(blockchain0, 'start', 'node', True)
     crypto_service(blockchain0, 'start', 'wallet-only -r', True)
     if blockchain_name != 'chia': crypto_service(blockchain0, 'start', 'farmer-no-wallet', True)
+    time.sleep(30)
 
     fingerprints = []
     str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} keys show | grep Fingerprint"
@@ -88,9 +88,9 @@ for blockchain0 in blockchain_list:
         counter = 0
         with Halo(text=f'waiting for {blockchain_name}/{fingerprint} wallet to sync', color='white'):
             while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1:
-                time.sleep(30)
+                time.sleep(120)
                 counter += 1
-                if counter > 5:
+                if counter > 2:
                     crypto_service(blockchain0, 'start', 'wallet-only -r', False)
                     counter = 0
 
