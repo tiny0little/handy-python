@@ -11,11 +11,13 @@ colorBOLD = '\033[1m'
 colorWHITEonPURPLE = '\33[45m'
 colorWHITEonGREEN = '\33[42m'
 colorWHITEonBLUE = '\33[44m'
+colorWHITEonRED = '\33[41m'
 
 blockchain_src = '/home/user/src'
-timeout_cmd = 'timeout 5'
+timeout_cmd = 'timeout 7'
 blockchain_list = []
 tabula = []
+tabula_rows = [[], [], [], []]
 
 parser = argparse.ArgumentParser(description="crypto wallets")
 parser.add_argument("-c", "--crypto", type=str, help="part of the name of cryptocurrency")
@@ -53,6 +55,8 @@ def time_converter(s: str) -> str:
     s = s.replace(' hour', 'h')
     s = s.replace(' days', 'd')
     s = s.replace(' day', 'd')
+    s = s.replace(' weeks', 'w')
+    s = s.replace(' week', 'w')
     s = s.replace(' ', '')
     return s
 
@@ -67,14 +71,15 @@ str0 = f'cd {blockchain_src} && ls | egrep blockchain | sort '
 if args.crypto is not None: str0 += f" | egrep '{args.crypto}'"
 if int(subprocess.getoutput(f"{str0} | wc -l")) > 0: blockchain_list = subprocess.getoutput(f"{str0}").split('\n')
 
-tabula_rows = [[], [], [], []]
+
 for blockchain0 in blockchain_list:
     blockchain_path = f'{blockchain_src}/{blockchain0}'
     blockchain_name = blockchain0.split('-')[0].strip()
 
     crypto_service(blockchain0, 'start', 'wallet-only -r', True)
     if blockchain_name != 'chia': crypto_service(blockchain0, 'start', 'farmer-no-wallet', True)
-    time.sleep(30)
+    with Halo(text=f'letting {blockchain_name} services to sync', color='white'):
+        time.sleep(30)
 
     fingerprints = []
     str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} keys show | grep Fingerprint"
@@ -83,24 +88,17 @@ for blockchain0 in blockchain_list:
         for tmp1 in tmp0: fingerprints.append(tmp1.split(':')[1].strip())
 
     for fingerprint in fingerprints:
-
-        str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} wallet show -f {fingerprint}"
-        counter = 0
-        with Halo(text=f'waiting for {blockchain_name}/{fingerprint} wallet to sync', color='white'):
-            while int(subprocess.getoutput(f'{str0} | grep "Sync status: Synced" | wc -l')) != 1:
-                time.sleep(120)
-                counter += 1
-                if counter > 2:
-                    crypto_service(blockchain0, 'start', 'wallet-only -r', False)
-                    counter = 0
-
+        str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} " \
+               f" wallet show -f {fingerprint} | grep Spendable "
+        with Halo(text=f'waiting for {blockchain_name}/{fingerprint} wallet service', color='white'):
+            while int(subprocess.getoutput(f'{str0} | wc -l')) == 0: time.sleep(30)
         with Halo(text=f'getting balance of {blockchain_name}/{fingerprint} wallet', color='white'):
-            str1 = subprocess.getoutput(f'{str0} | grep Spendable | head -1').split(':')[1].split('(')[0].strip()
+            str1 = subprocess.getoutput(f'{str0} | head -1').split(':')[1].split('(')[0].strip()
             str1 = str1.split(' ')[0].strip()
-        if float(str1) > 1:
+        if float(str1) > 5:
             str1 = f'{float(str1):.0f}'
         else:
-            str1 = f'{float(str1):.4f}'
+            str1 = f'{float(str1):.5f}'
         if args.verbose: print(f'{colorWHITEonPURPLE}{blockchain_name}/{fingerprint}{colorENDC}: {str1}')
 
         tabula_rows[0].append(f'{blockchain_name}')
@@ -115,6 +113,13 @@ for blockchain0 in blockchain_list:
     tmp0 = space_converter(tmp0)
     if args.verbose: print(f'network space: {tmp0}')
     for _ in range(len(fingerprints)): tabula_rows[3].append(f'{tmp0}')
+
+    if args.verbose:
+        tmp0 = farm_state(blockchain0, 'Farming status', f'getting farming status for {blockchain_name}')
+        if tmp0 == 'Farming':
+            print(f'farming status: {tmp0}')
+        else:
+            print(f'farming status: {colorWHITEonRED}{tmp0}{colorENDC}')
 
     crypto_service(blockchain0, 'stop', 'wallet-only', True)
     if args.verbose: print()
