@@ -115,6 +115,12 @@ for blockchain0 in blockchain_list:
     for _ in range(len(fingerprints)): tabula_rows[3].append(f'{tmp0}')
 
     if args.verbose:
+        str0 = f"cd {blockchain_path} && . ./activate && {timeout_cmd} {blockchain_name} show -c " \
+               f" | grep FULL_NODE | wc -l"
+        with Halo(text=f'getting number of peers for {blockchain_name} node', color='white'):
+            int0 = int(subprocess.getoutput(f'{str0}'))
+        print(f'number of peers: {int0}')
+
         tmp0 = farm_state(blockchain0, 'Farming status', f'getting farming status for {blockchain_name}')
         if tmp0 == 'Farming':
             print(f'farming status: {tmp0}')
